@@ -1,24 +1,33 @@
 import { Route, Routes } from 'react-router-dom';
-
+import { useState, useEffect, Context, createContext } from 'react';
 import './App.css';
 
+const ThemeContext = createContext('light');
 
 import Login from './pages/Login';
-import Register from './pages/Register'
+import Register from './pages/Register';
 import NavBar from './Components/Navbar';
+import React from 'react';
 
 export default function App() {
   // const found = ReactDOM.findDOMNode
   // console.log('found', found)
+  const [theme, setTheme] = useState('dark')
 
+  useEffect(() => {
+    document.documentElement.classList.add('data-bs-theme', 'dark', 'h-100'); //<html>
+    document.body.classList.add("bg-body-tertiary", "h-100")
+    document.body.querySelector("#root").classList.add("h-100")
+  }, []);
   return (
-    <Routes>
-      <Route path="/" element={<NavBar />}>
-        <Route index element={<Register />} />
-        <Route path="login" element={<Login />} />
-      </Route>
-
-    </Routes>
+    <ThemeContext.Provider value={theme}>
+      <Routes>
+        {/* <Route path="/" element={<NavBar />}> */}
+          <Route index path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+        {/* </Route> */}
+      </Routes>
+    </ThemeContext.Provider>
   );
 }
 

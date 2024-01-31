@@ -5,8 +5,8 @@ import { BrowserRouter } from 'react-router-dom';
 
 import Button from 'react-bootstrap/Button';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './scss/custom.scss';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+import '../scss/custom.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
