@@ -3,6 +3,7 @@ import './SignIn.css';
 import React, { FormEvent, useCallback, useState } from 'react';
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { type Auth, signIn, signUp } from '../lib';
 
 import {
   FloatingLabel,
@@ -27,6 +28,7 @@ export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [errMessage, setErrMessage] = useState('');
   const [validated, setValidated] = useState(false);
   const [userErrMessage, setUserErrMessage] = useState('');
   const [passErrMessage, setPassErrMessage] = useState('');
@@ -34,40 +36,58 @@ export default function SignIn() {
   const [username, setUsername] = useState('');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    const form = event.currentTarget;
-    // if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
-    // }
-    setValidated(true);
-    try {
-      setIsLoading(true);
-      const formData = new FormData(event.currentTarget);
-      console.log(formData)
-      const userData = Object.fromEntries(formData.entries());
-      console.log(userData)
-      const req = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      };
-      const res = await fetch('/api/auth/sign-up', req);
-      if (!res.ok) {
-        throw new Error(`fetch Error ${res.status}`);
-      }
-      const user = await res.json();
-      console.log('Registered', user);
+    event.preventDefault();
+    async function handleSignUp(username: string, password: string) {
+      await signUp(username, password);
       navigate('/sign-in');
+    }
+
+    if (event.currentTarget === null) throw new Error();
+    const formData = new FormData(event.currentTarget);
+    const entries = Object.fromEntries(formData.entries());
+    const { username, password } = entries;
+    console.log('userpass', username, password);
+
+    try {
+      const val = await handleSignUp(username as string, password as string);
     } catch (err) {
-      alert(`Error registering user: ${err}`);
-    } finally {
-      setIsLoading(false);
+      console.log('error', err);
+      setErrMessage(err.message);
     }
   }
 
+  // async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  //   const form = event.currentTarget;
+  //   // if (form.checkValidity() === false) {
+  //   event.preventDefault();
+  //   event.stopPropagation();
+  //   // }
+  //   setValidated(true);
+  //   try {
+  //     setIsLoading(true);
+  //     const formData = new FormData(event.currentTarget);
+  //     const userData = Object.fromEntries(formData.entries());
+  //     const req = {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(userData),
+  //     };
+  //     const res = await fetch('/api/auth/sign-up', req);
+  //     if (!res.ok) {
+  //       throw new Error(`fetch Error ${res.status}`);
+  //     }
+  //     const user = await res.json();
+  //     console.log('Registered', user);
+  //     navigate('/sign-in');
+  //   } catch (err) {
+  //     alert(`Error registering user: ${err}`);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
+
   useEffect(() => {
     if (location.pathname !== '/sign-up') {
-      console.log('location', location);
       navigate('/sign-up');
     }
   }, []);
@@ -78,8 +98,6 @@ export default function SignIn() {
   }
 
   function getUserValidity() {
-    console.log('username', username);
-
     if (username.length === 0) return '';
     if (userErrMessage.length > 0) return 'is-invalid';
     if (userErrMessage.length === 0) return 'is-valid';
@@ -109,7 +127,6 @@ export default function SignIn() {
     // if (Number(username[0])) str = concat(str, 'Must start with a letter');
     // if (!onlyLettersAndNumbers(username))
     //   str = concat(str, 'Must only contain letters and numbers');
-    console.log('passerr', str);
     setPassErrMessage(str);
   }
 
@@ -189,9 +206,16 @@ export default function SignIn() {
                 </Form.Control.Feedback>
               </FloatingLabel>
             </FormGroup>
-
+            <div
+              style={errMessage ? { display: 'block' } : {}}
+              className="invalid-feedback">
+              {errMessage}
+            </div>
             {/* <Form.Check className="my-1 mx-auto" label="Remember me"></Form.Check> */}
-            <Button type="submit" disabled={isLoading} className="my-2 bg-dark mx-auto w-50">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="my-2 bg-dark mx-auto w-50">
               Sign Up
             </Button>
             <div className="text-center" style={{ fontSize: 12 }}>

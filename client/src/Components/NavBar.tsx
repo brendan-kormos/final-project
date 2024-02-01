@@ -1,8 +1,13 @@
+import { useContext, useEffect } from 'react';
 import { Button } from 'react-bootstrap';
 import { Link, Outlet, Route, useNavigate } from 'react-router-dom';
+import { AppContext, AppContextValues } from './AppContext';
+import { type Auth, signIn, signUp } from '../lib';
 
 export default function NavBar() {
   const navigate = useNavigate();
+  const { handleSignOut, user: signedIn } = useContext<AppContextValues>(AppContext);
+  // const signedIn = context.user;
 
   return (
     <>
@@ -44,27 +49,47 @@ export default function NavBar() {
             </ul>
 
             <ul className="navbar-nav mb-md-0">
-              <li className="nav-item me-3 d-none d-md-block">
-                <Link to="/sign-in" className="btn btn-outline-light ">
-                  Sign In
-                </Link>
-              </li>
-              <li className="nav-item d-none d-md-block">
-                <Link to="/sign-up" className="btn btn-light">
-                  Sign Up
-                </Link>
-              </li>
+              {!signedIn && (
+                // nav signin sign out buttons
+                <>
+                  <li className="nav-item me-3 d-none d-md-block">
+                    <Link to="/sign-in" className="btn btn-outline-light ">
+                      Sign In
+                    </Link>
+                  </li>
+                  <li className="nav-item d-none d-md-block">
+                    <Link to="/sign-up" className="btn btn-light">
+                      Sign Up
+                    </Link>
+                  </li>
 
-              <li className="nav-item d-md-none">
-                <Link className="nav-link" aria-current="page" to="/sign-in">
-                  Sign In
-                </Link>
-              </li>
-              <li className="nav-item d-md-none">
-                <Link className="nav-link" aria-current="page" to="/sign-up">
-                  Sign Up
-                </Link>
-              </li>
+                  <li className="nav-item d-md-none">
+                    <Link
+                      className="nav-link"
+                      aria-current="page"
+                      to="/sign-in">
+                      Sign In
+                    </Link>
+                  </li>
+                  <li className="nav-item d-md-none">
+                    <Link
+                      className="nav-link"
+                      aria-current="page"
+                      to="/sign-up">
+                      Sign Up
+                    </Link>
+                  </li>
+                </>
+              )}
+              {signedIn && (
+                <>
+                  <li className="nav-item">
+                    <Link onClick={handleSignOut} to="/sign-up" className="nav-link">
+                      Sign Out
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>

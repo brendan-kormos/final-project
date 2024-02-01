@@ -49,12 +49,28 @@ app.use(express.json());
 app.post('/api/auth/sign-up', async (req, res, next) => {
   try {
     const { username, password } = req.body as Partial<Auth>;
-    console.log('username', password)
+    console.log('username', password);
     if (!username || !password) {
       throw new ClientError(400, 'username and password are required fields');
     }
+
+    const sqlCheck = `
+      select "username"
+      from "users"
+      where "username" = $1
+    `;
+
+    const checkParams = [username];
+    const checkResult = await db.query(sqlCheck, checkParams);
+    console.log('result', checkResult.rows);
+    const [exists] = checkResult.rows;
+    console.log(checkResult.rows);
+    if (exists) {
+      throw new ClientError(400, 'username already exists');
+    }
+
     const hashedPassword = await argon2.hash(password);
-    console.log('hashed password', hashedPassword)
+    console.log('hashed password', hashedPassword);
     console.log('db', db);
     const sql = `
       insert into "users" ("username", "hashedPassword")
@@ -64,6 +80,7 @@ app.post('/api/auth/sign-up', async (req, res, next) => {
 
     const params = [username, hashedPassword];
     const result = await db.query<User>(sql, params);
+    console.log('result', result.rows);
     const [user] = result.rows;
     res.status(201).json(user);
   } catch (err) {
