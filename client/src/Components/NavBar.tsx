@@ -1,18 +1,73 @@
 import { Button } from 'react-bootstrap';
-import { Outlet, Route } from 'react-router-dom';
-
+import { Link, Outlet, Route, useNavigate } from 'react-router-dom';
 
 export default function NavBar() {
+  const navigate = useNavigate();
   return (
     <>
-      <nav className="navbar navbar-expand-sm navbar-dark bg-dark mb-auto w-100">
-        <div className="navbar-collapse">
-          <ul className="navbar-nav mr-auto">
-            <li className="text-white nav-item nav-link">hello</li>
-          </ul>
+      <nav className="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div className="container-fluid">
+          <Link className="navbar-brand" to="/sign-up">
+            Project Manager
+          </Link>
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarCollapse">
+            <ul className="navbar-nav me-auto mb-md-0">
+              {/* <li className="nav-item">
+                <Link className="nav-link active" to="#">
+                  Home
+                </Link>
+              </li> */}
+
+              <li className="nav-item">
+                {/* "active" is a class that could be used if the tab is currently open*/}
+                <Link className="nav-link" href="#">
+                  Link
+                </Link>
+              </li>
+
+              {/* <li className="nav-item">
+                <Link className="nav-link disabled" aria-disabled="true">
+                  Disabled
+                </Link>
+              </li> */}
+            </ul>
+
+            <ul className="navbar-nav mb-md-0">
+              <li className="nav-item me-3 d-none d-md-block">
+                <Link to="/sign-in" className="btn btn-outline-light ">
+                  Sign In
+                </Link>
+              </li>
+              <li className="nav-item d-none d-md-block">
+                <Link to="/sign-up" className="btn btn-light">
+                  Sign Up
+                </Link>
+              </li>
+
+              <li className="nav-item d-md-none">
+                <Link className="nav-link" aria-current="page" to="/sign-in">
+                  Sign In
+                </Link>
+              </li>
+              <li className="nav-item d-md-none">
+                <Link className="nav-link" aria-current="page" to="/sign-up">
+                  Sign Up
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </nav>
-      {/* <Outlet /> */}
     </>
   );
 }

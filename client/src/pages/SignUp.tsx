@@ -1,7 +1,8 @@
-import './Login.css';
+import './SignIn.css';
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import {
   FloatingLabel,
@@ -13,7 +14,18 @@ import {
 
 import NavBar from '../Components/NavBar';
 
-export default function Login() {
+export default function SignIn() {
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname !== '/sign-up') {
+      console.log('location', location);
+      navigate('/sign-up');
+    }
+  }, []);
+
   return (
     <div className="h-100 d-flex flex-column ">
       <NavBar />
@@ -22,7 +34,7 @@ export default function Login() {
         className="m-auto d-flex align-items-center flex-grow-1 w-100">
         <Container className="" style={{ maxWidth: 330 }}>
           <Form className="w-100 d-flex flex-column" data-form-type="login">
-            <h1 className="my-2 h3 fw-normal text-center">Please Log in</h1>
+            <h1 className="my-2 h3 fw-normal text-center">Please Sign In</h1>
             <FormGroup className="form-group my-2">
               <FloatingLabel
                 controlId="floatingInput"
@@ -45,11 +57,11 @@ export default function Login() {
 
             {/* <Form.Check className="my-1 mx-auto" label="Remember me"></Form.Check> */}
             <Button type="submit" className="my-2 bg-dark mx-auto w-50">
-              Log in
+              Sign Up
             </Button>
             <div className="text-center" style={{ fontSize: 12 }}>
               <span>Don't have an account? </span>
-              <a href="/register">Register</a>
+              <Link to="/sign-in">Sign In</Link>
             </div>
           </Form>
         </Container>
