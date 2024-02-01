@@ -25,7 +25,7 @@ export default function App() {
         {/* <Route path="/" element={<NavBar />}> */}
         <Route index path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
-        <Route path="*" element={ <SignUp />} />
+        <Route path="*" element={<SignUp />} />
         {/* </Route> */}
       </Routes>
     </ThemeContext.Provider>

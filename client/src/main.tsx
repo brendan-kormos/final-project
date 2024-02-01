@@ -9,10 +9,10 @@ import Button from 'react-bootstrap/Button';
 import '../scss/custom.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
 React.createRef();

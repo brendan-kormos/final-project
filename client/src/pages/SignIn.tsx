@@ -1,6 +1,6 @@
 import './SignIn.css';
 
-import React from 'react';
+import React, { FormEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import {
@@ -14,6 +14,37 @@ import {
 import NavBar from '../Components/NavBar';
 
 export default function SignIn() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      setIsLoading(true);
+      const formData = new FormData(event.currentTarget);
+      const userData = Object.fromEntries(formData.entries());
+      const req = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      };
+      const res = await fetch('/api/auth/sign-in', req);
+      if (!res.ok) {
+        throw new Error(`fetch Error ${res.status}`);
+      }
+      const { user, token } = await res.json();
+
+      sessionStorage.setItem('token', token);
+      console.log('Signed In', user, '; received token:', token);
+      //successfully signed in
+
+      //TODO: take you to dashboard
+    } catch (err) {
+      alert(`Error signing in: ${err}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="h-100 d-flex flex-column ">
       <NavBar />
@@ -21,8 +52,11 @@ export default function SignIn() {
         style={{}}
         className="m-auto d-flex align-items-center flex-grow-1 w-100">
         <Container className="" style={{ maxWidth: 330 }}>
-          <Form className="w-100 d-flex flex-column" data-form-type="sign-in">
-            <h1 className="my-2 h3 fw-normal text-center">Create an account</h1>
+          <Form
+            onSubmit={handleSubmit}
+            className="w-100 d-flex flex-column"
+            data-form-type="sign-in">
+            <h1 className="my-2 h3 fw-normal text-center">Please Sign In</h1>
             <FormGroup className="form-group my-2">
               <FloatingLabel
                 controlId="floatingInput"
@@ -44,7 +78,7 @@ export default function SignIn() {
             </FormGroup>
             {/* <Form.Check className="my-1 mx-auto" label="Remember me"></Form.Check> */}
 
-            <Button type="submit" className="my-2 bg-dark mx-auto w-50">
+            <Button disabled={isLoading} className="my-2 bg-dark mx-auto w-50">
               Sign In
             </Button>
             <div className="text-center" style={{ fontSize: 12 }}>

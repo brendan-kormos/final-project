@@ -3,6 +3,7 @@ import { Link, Outlet, Route, useNavigate } from 'react-router-dom';
 
 export default function NavBar() {
   const navigate = useNavigate();
+
   return (
     <>
       <nav className="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
