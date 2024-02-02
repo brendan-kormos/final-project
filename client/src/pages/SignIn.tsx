@@ -25,7 +25,6 @@ export default function SignIn({ onSignIn }: Props) {
 
     async function handleSignIn(username: string, password: string) {
       const auth = await signIn(username, password);
-      console.log('auth', auth)
       if (auth.user && auth.token) {
         onSignIn(auth);
       }
@@ -34,46 +33,13 @@ export default function SignIn({ onSignIn }: Props) {
     const formData = new FormData(event.currentTarget);
     const entries = Object.fromEntries(formData.entries());
     const { username, password } = entries;
-    console.log('userpass', username, password);
 
     try {
       const val = await handleSignIn(username as string, password as string);
     } catch (err) {
-      console.log("error", err);
       setErrMessage(err.message);
     }
-
-    // try {
-    //   setIsLoading(true);
-    //   const formData = new FormData(event.currentTarget);
-    //   const userData = Object.fromEntries(formData.entries());
-    //   console.log(userData);
-    //   const req = {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(userData),
-    //   };
-    //   const res = await fetch('/api/auth/sign-in', req);
-    //   console.log('res', res);
-    //   if (!res.ok) {
-    //     const {error } = await res.json()
-    //     setErrMessage(error);
-    //     throw new Error(`fetch Error ${res.status}`);
-    //   }
-    //   const { user, token } = await res.json();
-
-    //   sessionStorage.setItem('token', token);
-    //   console.log('Signed In', user, '; received token:', token);
-    //   //successfully signed in
-
-    //   //TODO: take you to dashboard
-    // } catch (err) {
-    //   alert(`Error signing in: ${err}`);
-    // } finally {
-    //   setIsLoading(false);
-    // }
   }
-  console.log(errMessage);
   return (
     <div className="h-100 d-flex flex-column ">
       <NavBar />

@@ -46,45 +46,13 @@ export default function SignIn() {
     const formData = new FormData(event.currentTarget);
     const entries = Object.fromEntries(formData.entries());
     const { username, password } = entries;
-    console.log('userpass', username, password);
 
     try {
       const val = await handleSignUp(username as string, password as string);
     } catch (err) {
-      console.log('error', err);
       setErrMessage(err.message);
     }
   }
-
-  // async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-  //   const form = event.currentTarget;
-  //   // if (form.checkValidity() === false) {
-  //   event.preventDefault();
-  //   event.stopPropagation();
-  //   // }
-  //   setValidated(true);
-  //   try {
-  //     setIsLoading(true);
-  //     const formData = new FormData(event.currentTarget);
-  //     const userData = Object.fromEntries(formData.entries());
-  //     const req = {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(userData),
-  //     };
-  //     const res = await fetch('/api/auth/sign-up', req);
-  //     if (!res.ok) {
-  //       throw new Error(`fetch Error ${res.status}`);
-  //     }
-  //     const user = await res.json();
-  //     console.log('Registered', user);
-  //     navigate('/sign-in');
-  //   } catch (err) {
-  //     alert(`Error registering user: ${err}`);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
 
   useEffect(() => {
     if (location.pathname !== '/sign-up') {
