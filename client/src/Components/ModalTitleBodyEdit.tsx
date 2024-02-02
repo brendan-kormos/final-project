@@ -5,6 +5,7 @@ type Props = {
   titlePrompt: string;
   bodyPrompt: string;
   targetName: string;
+  showBody: boolean;
   onSubmit: (title: string, body: string) => void;
   onCancel?: () => void;
 };
@@ -14,7 +15,8 @@ export default function ModalTitleBodyEdit({
   bodyPrompt,
   onSubmit,
   onCancel,
-  targetName
+  targetName,
+  showBody,
 }: Props) {
   /*
   <button
@@ -36,7 +38,6 @@ export default function ModalTitleBodyEdit({
     onSubmit(title, body);
   };
   useEffect(() => {}, [header]);
-
   return (
     <div
       className="modal fade"
@@ -71,15 +72,18 @@ export default function ModalTitleBodyEdit({
                   id="modal-title"
                 />
               </div>
-              <div className="mb-3">
-                <label htmlFor="body-text" className="col-form-label">
-                  {bodyPrompt}
-                </label>
-                <textarea
-                  name="body"
-                  className="form-control"
-                  id="body-text"></textarea>
-              </div>
+
+              {showBody && (
+                <div className="mb-3">
+                  <label htmlFor="body-text" className="col-form-label">
+                    {bodyPrompt}
+                  </label>
+                  <textarea
+                    name="body"
+                    className="form-control"
+                    id="body-text"></textarea>
+                </div>
+              )}
             </div>
           </div>
 

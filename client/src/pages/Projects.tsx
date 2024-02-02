@@ -57,7 +57,7 @@ export default function Projects() {
       console.log('user', user);
       if (user) {
         const { ownerId, projectId, title } = await createProject({
-          title: 'test-title',
+          title: 'New Project',
           ownerId: user.userId,
         });
         console.log('real does exist', ownerId, projectId, title);
@@ -137,6 +137,7 @@ export default function Projects() {
           alt="..."
         />
       </div> */}
+
     </>
   );
 }

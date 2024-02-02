@@ -6,16 +6,18 @@ export type CreateProject = {
 // export const tokenKey = 'react-context-jwt';
 
 export type Board = {
-  boardId:number;
-  title:string;
-  description:string;
-  projectId:number
-}
+  boardId: number;
+  title: string;
+  description: string;
+  projectId: number;
+};
 export type Project = {
   projectId: number;
 } & CreateProject;
 
-export async function getProject(projectId: number): Promise<{projects:Project[], boards:Board[]}> {
+export async function getProject(
+  projectId: number
+): Promise<{ projects: Project[]; boards: Board[] }> {
   console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'GET',
@@ -65,8 +67,27 @@ export async function createProject({
   return json;
 }
 
+// edit a project
+export async function editProject(
+  projectId: number,
+  title: string
+): Promise<{ projects: Project[]; boards: Board[] }> {
+  const req = {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+  };
+  const res = await fetch('/api/edit-project/' + projectId + '/' + title, req);
+  console.log('edit res', res);
+  const json = await res.json();
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
+}
+
 export async function createBoard({ projectId, title, body }) {
-  console.log('projectId', projectId)
+  console.log('projectId', projectId);
   const req = {
     method: 'POST',
     headers: {
@@ -78,11 +99,26 @@ export async function createBoard({ projectId, title, body }) {
       body,
     }),
   };
-  console.log('req', req);
-  const res = await fetch('/api/create-board/' + projectId, req)
-  console.log('res', res)
+  const res = await fetch('/api/create-board/' + projectId, req);
   const json = await res.json();
 
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
   return json;
+}
+
+export async function deleteProject(projectId) {
+  const req = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+  };
+  console.log('preRes');
+  const res = await fetch('/api/delete-project/' + projectId, req);
+  console.log('res', res);
+  // const json = await res.json();
+  // console.log('json', json);
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. `);
+  // return json;
 }

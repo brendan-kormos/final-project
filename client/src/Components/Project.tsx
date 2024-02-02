@@ -3,7 +3,8 @@ import Board from './Board';
 import * as Icon from 'react-bootstrap-icons';
 import ModalTitleBodyEdit from './ModalTitleBodyEdit';
 import { useState } from 'react';
-import { createBoard } from '../lib';
+import { createBoard, deleteProject, editProject } from '../lib';
+import { useNavigate } from 'react-router-dom';
 type Props = {
   title: string;
   ownerId: number;
@@ -17,42 +18,72 @@ export default function Project({
   projectId,
   boards,
   project,
-  onNewBoard
+  onNewBoard,
 }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [header, setHeader] = useState('a');
   const [titlePrompt, setTitlePrompt] = useState('a');
   const [bodyPrompt, setBodyPrompt] = useState('a');
   const [action, setAction] = useState('');
+  const [showBody, setShowBody] = useState(true);
+  const navigate = useNavigate();
 
   async function handleModalFormSubmit(title, body) {
     console.log(projectId, title, body);
-    if (action === 'create-board') {
-      try {
-        setIsLoading(true);
-        console.log('attempting', projectId);
+    console.log('action', action);
+    try {
+      setIsLoading(true);
+      if (action === 'create-board') {
         const result = await createBoard({
           projectId,
           title,
           body,
         });
-
-        onNewBoard(result)
-        console.log('new board', result);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setIsLoading(false);
+        onNewBoard(result);
+      } else if (action === 'edit-project') {
+        console.log('edit project pre');
+        const result = await editProject(projectId, title);
+        console.log('edit project', result);
+        // onNewProject(result);
       }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   function handleNewBoardClicked(event) {
-    console.log('boardClicked', projectId);
     setHeader('Create a new board');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
     setAction('create-board');
+    setShowBody(true);
+  }
+
+  function handleEditProjectClicked(event) {
+    console.log('edit clicked');
+    setHeader('Edit Title');
+    setTitlePrompt('Set a title');
+    setBodyPrompt('Set a description');
+    setAction('edit-project');
+    setShowBody(false);
+  }
+
+  async function handleDeleteProjectClicked(event) {
+    try {
+      setIsLoading(true);
+      console.log('delete  pre');
+      console.log('projectId', projectId)
+      const result = await deleteProject(projectId);
+      console.log('delete post', result);
+      // navigate(0);
+      // onNewProject(result);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -70,7 +101,6 @@ export default function Project({
                 return element.projectId === projectId;
               })
               .map((element) => {
-                console.log('board element', boards);
                 return (
                   // <li key={element.boardId}>
                   <Board
@@ -83,13 +113,6 @@ export default function Project({
                 );
               })}
           {/* </ul> */}
-          {/* <Board
-            title={'testTitle'}
-            description="DESCRITPION YUH"
-            className={'col-sm bg-secondary-subtle'}
-          />
-          <Board className={'col-sm bg-secondary-subtle'} />
-          <Board className={'col-sm bg-secondary-subtle'} /> */}
         </div>
         <div
           className="bg-transparent btn-group position-absolute"
@@ -110,7 +133,11 @@ export default function Project({
               </button>
             </li>
             <li>
-              <button className="dropdown-item btn btn-dark">
+              <button
+                data-bs-toggle="modal"
+                data-bs-target="#project-dropdown-modal"
+                onClick={handleEditProjectClicked}
+                className="dropdown-item btn btn-dark">
                 Edit Project
               </button>
             </li>
@@ -118,7 +145,9 @@ export default function Project({
               <hr className="dropdown-divider" />
             </li>
             <li>
-              <button className="dropdown-item btn btn-danger">
+              <button
+                onClick={handleDeleteProjectClicked}
+                className="dropdown-item btn btn-danger">
                 Delete Project
               </button>
             </li>
@@ -126,6 +155,7 @@ export default function Project({
         </div>
       </div>
       <ModalTitleBodyEdit
+        showBody={showBody}
         titlePrompt={titlePrompt}
         bodyPrompt={bodyPrompt}
         header={header}

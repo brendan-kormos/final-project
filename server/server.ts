@@ -130,6 +130,7 @@ app.get('/api/projects', authMiddleware, async (req, res, next) => {
       select "projectId", "title", "ownerId"
       from "projects"
       where "ownerId" = $1
+      order by "projectId" asc
     `;
     const projectsResult = await db.query<Project>(projectsSql, [
       req.user.userId,
@@ -147,13 +148,14 @@ app.get('/api/projects', authMiddleware, async (req, res, next) => {
       JOIN
         "public"."projects" ON boards."projectId" = projects."projectId"
       WHERE
-        projects."ownerId" = $1;
+        projects."ownerId" = $1
+        order by boards."boardId" asc
     `;
     const boardsResult = await db.query<Project>(boardsSql, [req.user.userId]);
     const boardsVal = boardsResult.rows;
     console.log('boardsval', boardsVal);
 
-    res.status(201).json({boards:boardsVal, projects: projectsVal});
+    res.status(201).json({ boards: boardsVal, projects: projectsVal });
   } catch (err) {
     next(err);
   }
@@ -240,8 +242,87 @@ app.post(
       values ($1, $2, $3)
       returning "projectId", "boardId", "description", "title"
     `;
-    console.log('projectId', projectId)
+
       const result = await db.query<Project>(sql, [projectId, title, body]);
+      const val = result.rows[0];
+      console.log('val', val);
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//edit a project
+
+app.put(
+  '/api/edit-project/:projectId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      console.log('gor req for create board');
+      const { projectId, title } = req.params;
+      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      update "projects"
+      set "title" = $2
+      where "projectId" = $1
+      returning "projectId", "title", "ownerId"
+    `;
+
+      const result = await db.query<Project>(sql, [projectId, title]);
+      const val = result.rows[0];
+      console.log('val', val);
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//delete a project
+
+app.delete(
+  '/api/delete-project/:projectId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      console.log('made it to server');
+      const { projectId } = req.params;
+      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+
+      const boardsSql = `
+        delete from "boards"
+        where "projectId" = $1
+        returning *;
+      `;
+
+      await db.query(boardsSql, [projectId]);
+
+      const sql = `
+      delete from "projects"
+        where "projectId" = $1
+        returning *;
+    `;
+
+      const result = await db.query<Project>(sql, [projectId]);
       const val = result.rows[0];
       console.log('val', val);
 
