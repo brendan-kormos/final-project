@@ -29,7 +29,9 @@ export default function Projects() {
     async function get() {
       if (!user) return;
       console.log('user is logged in, get projects');
+      console.log('userId', user.userId)
       const result = await getProjects(user.userId);
+      console.log('post result')
       if (result.length === 0) return
       console.log('result', result)
       setProjects(result)
@@ -47,7 +49,6 @@ export default function Projects() {
   }, [user]);
 
   async function handleNewProjectClicked(event) {
-    console.log('click');
     if (isRequesting || isLoading) return;
     event.preventDefault();
     try {

@@ -119,6 +119,32 @@ app.post('/api/auth/sign-in', async (req, res, next) => {
   }
 });
 
+// get all projects
+
+
+// get all projects
+
+app.get('/api/projects', authMiddleware, async (req, res, next) => {
+  try {
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const sql = `
+      select "projectId", "title", "ownerId"
+      from "projects"
+      where "ownerId" = $1
+    `;
+    const result = await db.query<Project>(sql, [req.user.userId]);
+
+    const val = result.rows;
+
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
 //get project
 
 app.get(
@@ -180,6 +206,8 @@ app.post(
     }
   }
 );
+
+// create board
 
 app.post(
   '/api/create-board/:projectId',

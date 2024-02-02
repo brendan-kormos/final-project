@@ -3,14 +3,14 @@ type Props = {
   titlePrompt: string;
   bodyPrompt: string;
   targetName: string;
-  onModalSubmit: (title: string, body: string) => void;
+  onSubmit: (title: string, body: string) => void;
   onCancel?: () => void;
 };
 export default function ModalTitleBodyEdit({
   header,
   titlePrompt,
   bodyPrompt,
-  onModalSubmit,
+  onSubmit,
   onCancel,
   targetName,
 }: Props) {
@@ -30,7 +30,7 @@ export default function ModalTitleBodyEdit({
     if (event.currentTarget === null) throw new Error();
     const formData = new FormData(event.currentTarget);
     const { title, body } = Object.fromEntries(formData.entries());
-    onModalSubmit(title, body);
+    onSubmit(title, body);
   }
   return (
     <div

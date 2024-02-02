@@ -2,17 +2,23 @@ import { Button } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 
 type Props = {
-  className: string,
-  title:string,
-  description:string,
-  id:number,
-}
-export default function Board({ className, title, description, id }:Props) {
-
+  projectId: number;
+  boardId: number;
+  title: string;
+  description: string;
+  className: string;
+};
+export default function Board({
+  className,
+  title,
+  description,
+  boardId,
+  projectId,
+}: Props) {
   return (
     <>
       <div
-        className={`card board-card ${className} `}
+        className={`card board-card col-sm bg-secondary-subtle ${className} `}
         style={{ minWidth: 296 }}>
         <Icon.Diagram2
           size={30}
@@ -21,7 +27,7 @@ export default function Board({ className, title, description, id }:Props) {
         />
         <div className="card-body ps-5">
           <button className="btn p-0 text-start bg-transparent ">
-            <h5 className="card-title text-start h5">Card title</h5>
+            <h5 className="card-title text-start h5">{title}</h5>
           </button>
 
           <p className="card-text text-start">

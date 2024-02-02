@@ -8,8 +8,9 @@ type Props = {
   title: string;
   ownerId: number;
   projectId: number;
+  boards: [];
 };
-export default function Project({ title, ownerId, projectId }: Props) {
+export default function Project({ title, ownerId, projectId, boards }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [header, setHeader] = useState('a');
   const [titlePrompt, setTitlePrompt] = useState('a');
@@ -47,13 +48,27 @@ export default function Project({ title, ownerId, projectId }: Props) {
 
         <div className="row ms-0 me-0 no-gutter gap-3 col-auto">
           {/* boards go here */}
-          <Board
+          <ul className="list-unstyled">
+            {boards && boards.length > 0 && boards.map((element)=>{
+              return (
+                <li key={element.boardId}>
+                  <Board
+                    projectId={projectId}
+                    boardId={element.boardId}
+                    title={element.title}
+                    description={element.description}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          {/* <Board
             title={'testTitle'}
             description="DESCRITPION YUH"
             className={'col-sm bg-secondary-subtle'}
           />
           <Board className={'col-sm bg-secondary-subtle'} />
-          <Board className={'col-sm bg-secondary-subtle'} />
+          <Board className={'col-sm bg-secondary-subtle'} /> */}
         </div>
         <div
           className="bg-transparent btn-group position-absolute"
@@ -93,7 +108,7 @@ export default function Project({ title, ownerId, projectId }: Props) {
         titlePrompt={titlePrompt}
         bodyPrompt={bodyPrompt}
         header={header}
-        onModalSubmit={handleModalFormSubmit}
+        onSubmit={handleModalFormSubmit}
         targetName="project-dropdown-modal"
       />
     </>
