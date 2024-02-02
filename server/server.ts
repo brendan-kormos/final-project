@@ -22,6 +22,12 @@ type Auth = {
   password: string;
 };
 
+type Project = {
+  projectId: number;
+  title: string;
+  ownerId: number;
+};
+
 const connectionString =
   process.env.DATABASE_URL ||
   `postgresql://${process.env.RDS_USERNAME}:${process.env.RDS_PASSWORD}@${process.env.RDS_HOSTNAME}:${process.env.RDS_PORT}/${process.env.RDS_DB_NAME}`;
@@ -41,9 +47,9 @@ const app = express();
 const reactStaticDir = new URL('../client/dist', import.meta.url).pathname;
 const uploadsStaticDir = new URL('public', import.meta.url).pathname;
 
-app.use(express.static(reactStaticDir));
+// app.use(express.static(reactStaticDir));
 // Static directory for file uploads server/public/
-app.use(express.static(uploadsStaticDir));
+// app.use(express.static(uploadsStaticDir));
 app.use(express.json());
 
 app.post('/api/auth/sign-up', async (req, res, next) => {
@@ -113,22 +119,32 @@ app.post('/api/auth/sign-in', async (req, res, next) => {
   }
 });
 
-app.get('/api/entries', authMiddleware, async (req, res, next) => {
-  try {
-    if (!req.user) {
-      throw new ClientError(401, 'not logged in');
-    }
-    const sql = `
-      select * from "entries"
-        where "userId" = $1
-        order by "entryId" desc;
+app.post(
+  '/api/create-project/:ownerId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    console.log('I GO THERE')
+    try {
+      const { ownerId, title } = req.params;
+      console.log('ownerId', ownerId, 'title', title);
+      console.log('user', req.user);
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      insert into "projects" ("ownerId", "title")
+      values ($1, $2)
+      returning "projectId", "ownerId", "title"
     `;
-    const result = await db.query<User>(sql, [req.user?.userId]);
-    res.status(201).json(result.rows);
-  } catch (err) {
-    next(err);
+    console.log('predb')
+      const result = await db.query<Project>(sql, [req.user?.userId, title]);
+      console.log('result', result)
+      res.status(201).json(result.rows);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello, World!' });

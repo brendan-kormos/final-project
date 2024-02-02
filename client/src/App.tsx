@@ -11,8 +11,7 @@ import React from 'react';
 
 import { Auth, User } from './lib';
 import Projects from './pages/Projects';
-
-const tokenKey = 'react-context-jwt';
+import { tokenKey } from './lib';
 
 export default function App() {
   const [user, setUser] = useState<User>();
@@ -24,24 +23,27 @@ export default function App() {
 
   useEffect(() => {
     // If user logged in previously on this browser, authorize them
-    const auth = localStorage.getItem(tokenKey);
-    if (auth) {
-      const a = JSON.parse(auth);
-      setUser(a.user);
-      setToken(a.token);
+    const user = sessionStorage.getItem('user');
+    const token = sessionStorage.getItem('token');
+    if (user && token) {
+      const u = JSON.parse(user);
+      setUser(u);
+      setToken(token);
     }
     setIsAuthorizing(false);
   }, []);
 
   function handleSignIn(auth: Auth) {
-    localStorage.setItem(tokenKey, JSON.stringify(auth));
+    console.log('AUTH', auth);
+    sessionStorage.setItem('token', auth.token);
+    sessionStorage.setItem('user', JSON.stringify(auth.user));
     setUser(auth.user);
     setToken(auth.token);
-    navigate("/projects")
+    navigate('/projects');
   }
 
   function handleSignOut() {
-    localStorage.removeItem(tokenKey);
+    sessionStorage.removeItem('token');
     setUser(undefined);
     setToken(undefined);
   }
@@ -59,7 +61,7 @@ export default function App() {
         {/* <Route path="/" element={<NavBar />}> */}
         <Route index path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
-        <Route path="/projects" element={<Projects />}/>
+        <Route path="/projects" element={<Projects />} />
         <Route path="*" element={<SignUp />} />
         {/* </Route> */}
       </Routes>
