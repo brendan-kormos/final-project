@@ -6,6 +6,7 @@ import {
   createProject,
   Project as ProjectType,
   getProjects,
+  Board,
 } from '../lib';
 import { AppContext } from '../Components/AppContext';
 import NavBar from '../Components/NavBar';
@@ -21,20 +22,20 @@ export default function Projects() {
   const bigWindow = windowSize > 500;
   const [isLoading, setIsLoading] = useState(false);
   const [isRequesting, setRequesting] = useState(false);
-  const [projects, setProjects] = useState<ProjectList>([]);
-  const [boards, setBoards] = useState([]);
+  const [projects, setProjects] = useState<ProjectList>();
+  const [boards, setBoards] = useState();
 
   useEffect(() => {
     // get projects
     async function get() {
       if (!user) return;
       console.log('user is logged in, get projects');
-      console.log('userId', user.userId)
       const result = await getProjects(user.userId);
-      console.log('post result')
-      if (result.length === 0) return
-      console.log('result', result)
-      setProjects(result)
+
+      if (result.length === 0) return;
+      console.log('result', result);
+      setProjects(result.projects);
+      setBoards(result.boards);
       // result.map((project) => {});
       // const newBoardList = {};
       try {
@@ -61,12 +62,7 @@ export default function Projects() {
         });
         console.log('real does exist', ownerId, projectId, title);
 
-        // console.log(await createProject({
-        //   title: 'test-title',
-        //   ownerId: user.userId,
-        // }))
-        const newProjectArray = [...projects, { ownerId, projectId, title }];
-        setProjects(newProjectArray);
+        setProjects((array) => [...array, { ownerId, projectId, title }]);
       }
     } catch (err) {
       console.error(err);
@@ -75,16 +71,25 @@ export default function Projects() {
       setRequesting(false);
     }
   }
+
+  function handleNewBoard(board: Board) {
+    setBoards((array)=> [...array, board])
+  }
+
+  if (!projects) return null;
+  if (!boards) return null;
   return (
     <>
       <NavBar />
 
       <ul className="container pt-2 list-unstyled">
         {projects.length > 0 &&
-          projects.map((project: ProjectType) => {
+          projects.map((project: ProjectType, index) => {
             return (
               <li key={project.projectId}>
                 <Project
+                  onNewBoard={handleNewBoard}
+                  boards={boards}
                   title={project.title}
                   projectId={project.projectId}
                   ownerId={project.ownerId}
@@ -100,7 +105,7 @@ export default function Projects() {
           style={{
             position: 'fixed',
             bottom: 20,
-            right: bigWindow ? 726 / 2 : 20,
+            right: 20,
             borderRadius: '100%',
           }}>
           <Icons.PlusLg

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 type Props = {
   header: string;
   titlePrompt: string;
@@ -12,7 +14,7 @@ export default function ModalTitleBodyEdit({
   bodyPrompt,
   onSubmit,
   onCancel,
-  targetName,
+  targetName
 }: Props) {
   /*
   <button
@@ -25,13 +27,16 @@ export default function ModalTitleBodyEdit({
     </button>
     */
 
-  function handleOnSubmit(event) {
+  const handleOnSubmit = (event) => {
     event.preventDefault();
+    event.stopPropagation();
     if (event.currentTarget === null) throw new Error();
     const formData = new FormData(event.currentTarget);
     const { title, body } = Object.fromEntries(formData.entries());
     onSubmit(title, body);
-  }
+  };
+  useEffect(() => {}, [header]);
+
   return (
     <div
       className="modal fade"
@@ -80,7 +85,7 @@ export default function ModalTitleBodyEdit({
 
           <div className="modal-footer">
             <button
-              onClick={onCancel}
+              // onClick={onCancel}
               type="button"
               className="btn btn-secondary"
               data-bs-dismiss="modal">

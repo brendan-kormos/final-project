@@ -6,7 +6,7 @@ type Props = {
   boardId: number;
   title: string;
   description: string;
-  className: string;
+  className?: string;
 };
 export default function Board({
   className,

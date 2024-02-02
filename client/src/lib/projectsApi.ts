@@ -5,11 +5,17 @@ export type CreateProject = {
 
 // export const tokenKey = 'react-context-jwt';
 
+export type Board = {
+  boardId:number;
+  title:string;
+  description:string;
+  projectId:number
+}
 export type Project = {
   projectId: number;
 } & CreateProject;
 
-export async function getProject(projectId: number): Promise<Project> {
+export async function getProject(projectId: number): Promise<{projects:Project[], boards:Board[]}> {
   console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'GET',

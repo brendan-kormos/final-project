@@ -9,8 +9,16 @@ type Props = {
   ownerId: number;
   projectId: number;
   boards: [];
+  onNewBoard: (board: any) => void;
 };
-export default function Project({ title, ownerId, projectId, boards }: Props) {
+export default function Project({
+  title,
+  ownerId,
+  projectId,
+  boards,
+  project,
+  onNewBoard
+}: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [header, setHeader] = useState('a');
   const [titlePrompt, setTitlePrompt] = useState('a');
@@ -18,13 +26,19 @@ export default function Project({ title, ownerId, projectId, boards }: Props) {
   const [action, setAction] = useState('');
 
   async function handleModalFormSubmit(title, body) {
-    console.log(title, body);
+    console.log(projectId, title, body);
     if (action === 'create-board') {
       try {
         setIsLoading(true);
-        console.log('attempting');
-        const result = await createBoard({ projectId, title, body });
-        console.log(result);
+        console.log('attempting', projectId);
+        const result = await createBoard({
+          projectId,
+          title,
+          body,
+        });
+
+        onNewBoard(result)
+        console.log('new board', result);
       } catch (err) {
         console.log(err);
       } finally {
@@ -34,6 +48,7 @@ export default function Project({ title, ownerId, projectId, boards }: Props) {
   }
 
   function handleNewBoardClicked(event) {
+    console.log('boardClicked', projectId);
     setHeader('Create a new board');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
@@ -42,26 +57,32 @@ export default function Project({ title, ownerId, projectId, boards }: Props) {
 
   return (
     <>
-      <div className="card mb-3 p-3">
+      <div className={'card mb-3 p-3'}>
         <h1 className="pb-1">{title}</h1>
         <div className="line my-2 "></div>
 
         <div className="row ms-0 me-0 no-gutter gap-3 col-auto">
           {/* boards go here */}
-          <ul className="list-unstyled">
-            {boards && boards.length > 0 && boards.map((element)=>{
-              return (
-                <li key={element.boardId}>
+          {/* <ul className="list-unstyled"> */}
+          {boards &&
+            boards
+              .filter((element) => {
+                return element.projectId === projectId;
+              })
+              .map((element) => {
+                console.log('board element', boards);
+                return (
+                  // <li key={element.boardId}>
                   <Board
                     projectId={projectId}
                     boardId={element.boardId}
                     title={element.title}
                     description={element.description}
                   />
-                </li>
-              );
-            })}
-          </ul>
+                  // </li>
+                );
+              })}
+          {/* </ul> */}
           {/* <Board
             title={'testTitle'}
             description="DESCRITPION YUH"
