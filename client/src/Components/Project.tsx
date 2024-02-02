@@ -3,25 +3,40 @@ import Board from './Board';
 import * as Icon from 'react-bootstrap-icons';
 import ModalTitleBodyEdit from './ModalTitleBodyEdit';
 import { useState } from 'react';
-
+import { createBoard } from '../lib';
 type Props = {
   title: string;
   ownerId: number;
   projectId: number;
 };
 export default function Project({ title, ownerId, projectId }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [header, setHeader] = useState('a');
+  const [titlePrompt, setTitlePrompt] = useState('a');
+  const [bodyPrompt, setBodyPrompt] = useState('a');
+  const [action, setAction] = useState('');
 
-  const [header, setHeader] = useState('a')
-  const [titlePrompt, setTitlePrompt] = useState('a')
-  const [bodyPrompt, setBodyPrompt] = useState('a')
-
-
-  function handleModalFormSubmit(title, body) {
-    console.log(title, body)
+  async function handleModalFormSubmit(title, body) {
+    console.log(title, body);
+    if (action === 'create-board') {
+      try {
+        setIsLoading(true);
+        console.log('attempting');
+        const result = await createBoard({ projectId, title, body });
+        console.log(result);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   }
 
-  function handleNewBoardClicked(event){
-
+  function handleNewBoardClicked(event) {
+    setHeader('Create a new board');
+    setTitlePrompt('Set a title');
+    setBodyPrompt('Set a description');
+    setAction('create-board');
   }
 
   return (
@@ -53,7 +68,7 @@ export default function Project({ title, ownerId, projectId }: Props) {
               <button
                 data-bs-toggle="modal"
                 data-bs-target="#project-dropdown-modal"
-                // onClick={handleNewBoardClicked}
+                onClick={handleNewBoardClicked}
                 className="dropdown-item btn btn-dark">
                 New Board
               </button>
@@ -78,7 +93,7 @@ export default function Project({ title, ownerId, projectId }: Props) {
         titlePrompt={titlePrompt}
         bodyPrompt={bodyPrompt}
         header={header}
-        onSubmit={handleModalFormSubmit}
+        onModalSubmit={handleModalFormSubmit}
         targetName="project-dropdown-modal"
       />
     </>
