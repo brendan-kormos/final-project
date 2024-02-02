@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import express from 'express';
 import argon2 from 'argon2';
-import pg from 'pg';
+import pg, { Client } from 'pg';
 import jwt from 'jsonwebtoken';
 import {
   ClientError,
@@ -119,15 +119,75 @@ app.post('/api/auth/sign-in', async (req, res, next) => {
   }
 });
 
+//get project
+
+app.get(
+  '/api/projects/project/:projectId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { projectId } = req.params;
+
+      if (!projectId || isNaN(projectId) || !Number(projectId)){
+        throw new ClientError(401, 'invalid projectId');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      select "title", "ownerId"
+      from "projects"
+      where "projectId" = $1
+    `;
+      const result = await db.query<Project>(sql, [projectId]);
+      const val = result.rows[0]
+      console.log('val', val)
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// get all projects
+
+app.get('/api/projects', authMiddleware, async (req, res, next) => {
+  try {
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const sql = `
+      select "projectId", "title", "ownerId"
+      from "projects"
+      where "ownerId" = $1
+    `;
+    const result = await db.query<Project>(sql, [req.user.userId]);
+
+    const val = result.rows;
+
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// create project
 app.post(
   '/api/create-project/:ownerId/:title',
   authMiddleware,
   async (req, res, next) => {
-    console.log('I GO THERE')
     try {
       const { ownerId, title } = req.params;
-      console.log('ownerId', ownerId, 'title', title);
-      console.log('user', req.user);
+
+      if (!ownerId){
+        throw new ClientError(400, "no ownerId was provided")
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
       if (!req.user) {
         throw new ClientError(401, 'not logged in');
       }
@@ -136,10 +196,10 @@ app.post(
       values ($1, $2)
       returning "projectId", "ownerId", "title"
     `;
-    console.log('predb')
       const result = await db.query<Project>(sql, [req.user?.userId, title]);
-      console.log('result', result)
-      res.status(201).json(result.rows);
+      const val = result.rows[0]
+
+      res.status(201).json(val);
     } catch (err) {
       next(err);
     }
