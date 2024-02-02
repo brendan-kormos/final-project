@@ -98,10 +98,6 @@ export default function SignIn() {
     setPassErrMessage(str);
   }
 
-  // useEffect(()=>{
-  //   handleUserErrMsg()
-  // },[])
-
   useEffect(() => {
     handleUserErrMsg(username);
     handlePassErrMsg(password);
@@ -135,13 +131,7 @@ export default function SignIn() {
                   type="username"
                   placeholder="username"
                   className={`${
-                    getUserValidity()
-                    // showUserErr()
-                    //   ? 'is-valid'
-                    //   : username.length > 0
-                    //   ? 'is-invalid'
-                    //   : ''
-                  }`}
+                    getUserValidity()}`}
                 />
                 <Form.Control.Feedback tooltip type="invalid">
                   {userErrMessage}
@@ -161,13 +151,7 @@ export default function SignIn() {
                   type="password"
                   placeholder="password"
                   className={`${
-                    getPassValidity()
-                    // showPassErr()
-                    //   ? 'is-valid'
-                    //   : password.length > 0
-                    //   ? 'is-invalid'
-                    //   : ''
-                  }`}
+                    getPassValidity()}`}
                 />
                 <Form.Control.Feedback tooltip type="invalid">
                   {passErrMessage}
