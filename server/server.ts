@@ -186,7 +186,7 @@ app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
 
 // create project
 app.post(
-  '/api/create-project/:ownerId/:title',
+  '/api/project/:ownerId/:title',
   authMiddleware,
   async (req, res, next) => {
     try {
@@ -220,7 +220,7 @@ app.post(
 // create board
 
 app.post(
-  '/api/create-board/:projectId',
+  '/api/board/:projectId',
   authMiddleware,
   async (req, res, next) => {
     try {
@@ -257,7 +257,7 @@ app.post(
 //edit a project
 
 app.put(
-  '/api/edit-project/:projectId/:title',
+  '/api/project/:projectId/:title',
   authMiddleware,
   async (req, res, next) => {
     try {
@@ -294,7 +294,7 @@ app.put(
 //delete a project
 
 app.delete(
-  '/api/delete-project/:projectId',
+  '/api/project/:projectId',
   authMiddleware,
   async (req, res, next) => {
     try {

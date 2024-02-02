@@ -61,7 +61,7 @@ export async function createProject({
     },
   };
   console.log('req', req);
-  const res = await fetch('/api/create-project/' + ownerId + '/' + title, req);
+  const res = await fetch('/api/project/' + ownerId + '/' + title, req);
   const json = await res.json();
   if (!res.ok) throw new Error(`fetch Error ${res.status}`);
   return json;
@@ -79,7 +79,7 @@ export async function editProject(
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
   };
-  const res = await fetch('/api/edit-project/' + projectId + '/' + title, req);
+  const res = await fetch('/api/project/' + projectId + '/' + title, req);
   console.log('edit res', res);
   const json = await res.json();
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
@@ -99,7 +99,7 @@ export async function createBoard({ projectId, title, body }) {
       body,
     }),
   };
-  const res = await fetch('/api/create-board/' + projectId, req);
+  const res = await fetch('/api/board/' + projectId, req);
   const json = await res.json();
 
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
@@ -115,7 +115,7 @@ export async function deleteProject(projectId) {
     },
   };
   console.log('preRes');
-  const res = await fetch('/api/delete-project/' + projectId, req);
+  const res = await fetch('/api/project/' + projectId, req);
   console.log('res', res);
   // const json = await res.json();
   // console.log('json', json);

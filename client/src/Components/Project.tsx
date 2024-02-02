@@ -3,7 +3,7 @@ import Board from './Board';
 import * as Icon from 'react-bootstrap-icons';
 import ModalTitleBodyEdit from './ModalTitleBodyEdit';
 import { useState } from 'react';
-import { createBoard, deleteProject, editProject } from '../lib';
+import { createBoard, createProject, deleteProject, editProject } from '../lib';
 import { useNavigate } from 'react-router-dom';
 type Props = {
   title: string;
@@ -33,8 +33,9 @@ export default function Project({
     console.log(projectId, title, body);
     console.log('action', action);
     try {
+      if (isLoading) return
       setIsLoading(true);
-      if (action === 'create-board') {
+      if (action === 'create-project') {
         const result = await createBoard({
           projectId,
           title,
@@ -57,16 +58,15 @@ export default function Project({
   const targetId = `#modal-menu${projectId}`
   const targetIdNoTag = `modal-menu${projectId}`;
 
-  function handleNewBoardClicked(event) {
+  function handleNewProjectClicked(event) {
     setHeader('Create a new board');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
-    setAction('create-board');
+    setAction('create-project');
     setShowBody(true);
   }
 
   function handleEditProjectClicked(event) {
-    console.log('edit clicked');
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
@@ -76,6 +76,7 @@ export default function Project({
 
   async function handleDeleteProjectClicked(event) {
     try {
+      if (isLoading) return;
       setIsLoading(true);
       console.log('delete  pre');
       console.log('projectId', projectId)
@@ -122,7 +123,7 @@ export default function Project({
           className="bg-transparent btn-group position-absolute"
           style={{ right: 16, top: 16 }}>
           <button
-            className="bg-transparent btn btn btn-secondary border-0 bg-transparent"
+            className="bg-transparent btn btn-secondary border-0 bg-transparent"
             data-bs-toggle="dropdown">
             <Icon.ThreeDots color={'black'} size={16} />
           </button>
@@ -131,7 +132,7 @@ export default function Project({
               <button
                 data-bs-toggle="modal"
                 data-bs-target={targetId}
-                onClick={handleNewBoardClicked}
+                onClick={handleNewProjectClicked}
                 className="dropdown-item btn btn-dark">
                 New Board
               </button>
