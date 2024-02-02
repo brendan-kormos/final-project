@@ -27,6 +27,7 @@ export default function Project({
   const [action, setAction] = useState('');
   const [showBody, setShowBody] = useState(true);
   const navigate = useNavigate();
+  console.log('project projectId', projectId)
 
   async function handleModalFormSubmit(title, body) {
     console.log(projectId, title, body);
@@ -52,6 +53,9 @@ export default function Project({
       setIsLoading(false);
     }
   }
+
+  const targetId = `#modal-menu${projectId}`
+  const targetIdNoTag = `modal-menu${projectId}`;
 
   function handleNewBoardClicked(event) {
     setHeader('Create a new board');
@@ -126,7 +130,7 @@ export default function Project({
             <li>
               <button
                 data-bs-toggle="modal"
-                data-bs-target="#project-dropdown-modal"
+                data-bs-target={targetId}
                 onClick={handleNewBoardClicked}
                 className="dropdown-item btn btn-dark">
                 New Board
@@ -135,7 +139,7 @@ export default function Project({
             <li>
               <button
                 data-bs-toggle="modal"
-                data-bs-target="#project-dropdown-modal"
+                data-bs-target={targetId}
                 onClick={handleEditProjectClicked}
                 className="dropdown-item btn btn-dark">
                 Edit Project
@@ -160,7 +164,7 @@ export default function Project({
         bodyPrompt={bodyPrompt}
         header={header}
         onSubmit={handleModalFormSubmit}
-        targetName="project-dropdown-modal"
+        targetName={targetIdNoTag}
       />
     </>
   );

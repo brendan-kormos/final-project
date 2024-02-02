@@ -173,9 +173,9 @@ app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
     const sql = `
       select "title", "ownerId"
       from "projects"
-      where "projectId" = $1
+      where "ownerId" = $1 and "projectId" = $2
     `;
-    const result = await db.query<Project>(sql, [projectId]);
+    const result = await db.query<Project>(sql, [user.userId, projectId]);
     const val = result.rows[0];
     console.log('val', val);
     res.status(201).json(val);

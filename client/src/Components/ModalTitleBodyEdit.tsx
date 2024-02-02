@@ -29,6 +29,8 @@ export default function ModalTitleBodyEdit({
     </button>
     */
 
+
+
   const handleOnSubmit = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -37,6 +39,7 @@ export default function ModalTitleBodyEdit({
     const { title, body } = Object.fromEntries(formData.entries());
     onSubmit(title, body);
   };
+
   useEffect(() => {}, [header]);
   return (
     <div

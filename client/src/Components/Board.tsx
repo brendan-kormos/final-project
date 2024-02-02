@@ -15,6 +15,11 @@ export default function Board({
   boardId,
   projectId,
 }: Props) {
+
+  function handleBoardClicked(){
+
+  }
+  // console.log('board projectId', projectId)
   return (
     <>
       <div
@@ -26,9 +31,11 @@ export default function Board({
           style={{ top: 16, left: 12 }}
         />
         <div className="card-body ps-5">
-          <button className="btn p-0 text-start bg-transparent ">
+          <a
+            href="http://localhost:5174/createjs.html"
+            className="btn p-0 text-start bg-transparent ">
             <h5 className="card-title text-start h5">{title}</h5>
-          </button>
+          </a>
 
           <p className="card-text text-start">
             {description}
