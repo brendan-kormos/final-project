@@ -128,7 +128,7 @@ app.get(
     try {
       const { projectId } = req.params;
 
-      if (!projectId || isNaN(projectId) || !Number(projectId)){
+      if (!projectId || isNaN(projectId) || !Number(projectId)) {
         throw new ClientError(401, 'invalid projectId');
       }
 
@@ -141,8 +141,8 @@ app.get(
       where "projectId" = $1
     `;
       const result = await db.query<Project>(sql, [projectId]);
-      const val = result.rows[0]
-      console.log('val', val)
+      const val = result.rows[0];
+      console.log('val', val);
       res.status(201).json(val);
     } catch (err) {
       next(err);
@@ -154,20 +154,43 @@ app.get(
 
 app.get('/api/projects', authMiddleware, async (req, res, next) => {
   try {
-
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
     }
-    const sql = `
+    const projectsSql = `
       select "projectId", "title", "ownerId"
       from "projects"
       where "ownerId" = $1
     `;
-    const result = await db.query<Project>(sql, [req.user.userId]);
+    const projectsResult = await db.query<Project>(projectsSql, [
+      req.user.userId,
+    ]);
+    const projects = projectsResult.rows;
 
-    const val = result.rows;
+    // const boardsSql = `
+    //   select "projectId", "title", "ownerId"
+    //   from "projects"
+    //   where "ownerId" = $1
+    // `;
+    const boardsSql = `
+  SELECT
+    boards."boardId" AS board_id,
+    boards."title" AS board_title,
+    projects."projectId" AS project_id,
+    projects."title" AS project_title
+  FROM
+    "public"."boards" AS boards
+  JOIN
+    "public"."projects" AS projects ON boards."projectId" = projects."projectId"
+  WHERE
+    projects."ownerId" = $1;
+`;
+    const boardsResult = await db.query(boardsSql, [req.user.userId]);
+    const boards = boardsResult.rows;
 
-    res.status(201).json(val);
+    // const returnObj = { projects };
+    console.log(boards);
+    res.status(201).json(projects);
   } catch (err) {
     next(err);
   }
@@ -181,8 +204,8 @@ app.post(
     try {
       const { ownerId, title } = req.params;
 
-      if (!ownerId){
-        throw new ClientError(400, "no ownerId was provided")
+      if (!ownerId) {
+        throw new ClientError(400, 'no ownerId was provided');
       }
       if (!title) {
         throw new ClientError(400, 'no title was provided');
@@ -197,7 +220,7 @@ app.post(
       returning "projectId", "ownerId", "title"
     `;
       const result = await db.query<Project>(sql, [req.user?.userId, title]);
-      const val = result.rows[0]
+      const val = result.rows[0];
 
       res.status(201).json(val);
     } catch (err) {

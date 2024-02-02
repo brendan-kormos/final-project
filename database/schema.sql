@@ -17,7 +17,6 @@ CREATE TABLE "public"."projects" (
   "projectId" serial PRIMARY KEY,
   "title" varchar,
   "ownerId" integer,
-  "boardId" integer,
   "createdAt" timestamp DEFAULT (now())
 );
 
