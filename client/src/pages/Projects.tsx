@@ -3,13 +3,14 @@ import { type Auth, signIn, signUp } from '../lib';
 
 import NavBar from '../Components/NavBar';
 import Project from '../Components/Project';
+
 export default function Projects() {
   return (
     <>
       <NavBar />
 
-      <div className="container py-2">
-        <Project />
+      <div className="container pt-2">
+        <Project title="project name"/>
       </div>
 
       {/* <div className="card">

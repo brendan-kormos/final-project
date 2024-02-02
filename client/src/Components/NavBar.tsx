@@ -6,7 +6,8 @@ import { type Auth, signIn, signUp } from '../lib';
 
 export default function NavBar() {
   const navigate = useNavigate();
-  const { handleSignOut, user: signedIn } =
+  const { handleSignOut, user: signedIn } = useContext(AppContext)
+  console.log(signedIn)
     useContext<AppContextValues>(AppContext);
   // const signedIn = context.user;
   const {pathname} = useLocation()
@@ -36,17 +37,22 @@ export default function NavBar() {
                 </Link>
               </li> */}
 
-              <li
-                className={`nav-item${pathname === '/projects' && ' active'}`}>
-                {/* "active" is a class that could be used if the tab is currently open*/}
-                <Link
-                  to="/projects"
-                  className={`nav-link${
-                    pathname === '/projects' && ' active'
+              {signedIn && (
+                <li
+                  className={`nav-item${
+                    pathname === '/projects' ? ' active' : ''
                   }`}>
-                  Projects
-                </Link>
-              </li>
+                  {/* "active" is a class that could be used if the tab is currently open*/}
+                  <Link
+                    to="/projects"
+                    className={`nav-link${
+                      pathname === '/projects' ? ' active' : ''
+                    }`}>
+                    Projects
+                  </Link>
+                </li>
+              )}
+
               {/* "active" is a class that could be used if the tab is currently open*/}
               {/* <li className="nav-item">
                 <Link className="nav-link" href="#">

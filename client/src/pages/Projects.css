@@ -10,6 +10,6 @@ body {
   border-bottom: 1px solid #eee;
 }
 
-.board{
-
+.board-card {
+  max-width: calc(324px + 12px);
 }

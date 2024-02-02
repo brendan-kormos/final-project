@@ -37,6 +37,7 @@ export default function App() {
     localStorage.setItem(tokenKey, JSON.stringify(auth));
     setUser(auth.user);
     setToken(auth.token);
+    navigate("/projects")
   }
 
   function handleSignOut() {

@@ -1,20 +1,24 @@
 import { Navbar } from 'react-bootstrap';
 import Board from './Board';
 
-export default function Project() {
+
+type Props = {
+  title:string
+}
+export default function Project({title}:Props) {
+
   return (
     <>
       <div className="card mb-3 p-3">
-        <h1 className="pb-1">Project Name</h1>
+        <h1 className="pb-1">{title}</h1>
         <div className="line my-2 "></div>
 
-        <div className="d-flex align-items-start align-content-start align-self-stretch flex-wrap gap-3" >
+        <div className="row ms-0 me-0 no-gutter gap-3 col-auto">
           {/* boards go here */}
-          <Board className={""} />
-          <Board />
-          <Board />
-          <Board />
-          <Board />
+          <Board title={"testTitle"} description='DESCRITPION YUH' className={'col-sm bg-secondary-subtle'} />
+          <Board className={'col-sm bg-secondary-subtle'} />
+          <Board className={'col-sm bg-secondary-subtle'} />
+
         </div>
       </div>
     </>
