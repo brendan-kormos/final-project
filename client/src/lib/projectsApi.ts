@@ -95,7 +95,9 @@ export async function createBoard({ projectId, title, body }) {
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
     body: JSON.stringify({
+      title,
       body,
+
     }),
   };
   const res = await fetch('/api/board/' + projectId, req);
@@ -113,6 +115,7 @@ export async function deleteProject(projectId) {
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
   };
+
 
   const res = await fetch('/api/project/' + projectId, req);
   const json = await res.json();
@@ -137,7 +140,12 @@ export async function deleteBoard(boardId) {
   return json;
 }
 
-export async function editBoard(boardId: number, title: string, body: string) {
+
+export async function editBoard(
+  boardId: number,
+  title: string,
+  body: string,
+) {
   const req = {
     method: 'PUT',
     headers: {
@@ -148,7 +156,7 @@ export async function editBoard(boardId: number, title: string, body: string) {
       body,
     }),
   };
-  const res = await fetch('/api/board/' + boardId + '/' + title, req);
+  const res = await fetch('/api/board/' + boardId + "/" +title, req);
   console.log('edit res', res);
   const json = await res.json();
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);

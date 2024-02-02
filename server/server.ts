@@ -153,7 +153,6 @@ app.get('/api/projects', authMiddleware, async (req, res, next) => {
     `;
     const boardsResult = await db.query<Project>(boardsSql, [req.user.userId]);
     const boardsVal = boardsResult.rows;
-    console.log('boardsval', boardsVal);
 
     res.status(201).json({ boards: boardsVal, projects: projectsVal });
   } catch (err) {
@@ -177,7 +176,6 @@ app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
     `;
     const result = await db.query<Project>(sql, [user.userId, projectId]);
     const val = result.rows[0];
-    console.log('val', val);
     res.status(201).json(val);
   } catch (err) {
     next(err);
@@ -221,7 +219,6 @@ app.post(
 
 app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
   try {
-    console.log('gor req for create board');
     const { projectId } = req.params;
     const { title, body } = req.body;
     if (!projectId || !Number(projectId) || isNaN(projectId)) {
@@ -242,7 +239,6 @@ app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
 
     const result = await db.query<Project>(sql, [projectId, title, body]);
     const val = result.rows[0];
-    console.log('val', val);
 
     res.status(201).json(val);
   } catch (err) {
@@ -367,10 +363,8 @@ app.put(
   authMiddleware,
   async (req, res, next) => {
     try {
-      console.log('gor req for create board');
       const { boardId, title } = req.params;
       const { body } = req.body
-      console.log('body', body)
 
       if (!boardId || !Number(boardId) || isNaN(boardId)) {
         throw new ClientError(400, 'no projectId was provided');
@@ -391,7 +385,6 @@ app.put(
 
       const result = await db.query<Project>(sql, [boardId, title, body]);
       const val = result.rows[0];
-      console.log('val', val);
 
       res.status(201).json(val);
     } catch (err) {

@@ -36,6 +36,7 @@ export default function Project({
       if (isLoading) return
       setIsLoading(true);
       if (action === 'create-project') {
+        console.log('create!')
         const result = await createBoard({
           projectId,
           title,
@@ -82,7 +83,7 @@ export default function Project({
       console.log('projectId', projectId)
       const result = await deleteProject(projectId);
       console.log('delete post', result);
-      // navigate(0);
+      navigate(0);
       // onNewProject(result);
     } catch (err) {
       console.log(err);
