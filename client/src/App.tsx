@@ -10,6 +10,7 @@ import NavBar from './Components/Navbar';
 import React from 'react';
 
 import { Auth, User } from './lib';
+import Projects from './pages/Projects';
 
 const tokenKey = 'react-context-jwt';
 
@@ -57,6 +58,7 @@ export default function App() {
         {/* <Route path="/" element={<NavBar />}> */}
         <Route index path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
+        <Route path="/projects" element={<Projects />}/>
         <Route path="*" element={<SignUp />} />
         {/* </Route> */}
       </Routes>

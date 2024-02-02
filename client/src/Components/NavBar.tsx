@@ -1,17 +1,19 @@
 import { useContext, useEffect } from 'react';
 import { Button } from 'react-bootstrap';
-import { Link, Outlet, Route, useNavigate } from 'react-router-dom';
+import { Link, Outlet, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext, AppContextValues } from './AppContext';
 import { type Auth, signIn, signUp } from '../lib';
 
 export default function NavBar() {
   const navigate = useNavigate();
-  const { handleSignOut, user: signedIn } = useContext<AppContextValues>(AppContext);
+  const { handleSignOut, user: signedIn } =
+    useContext<AppContextValues>(AppContext);
   // const signedIn = context.user;
-
+  const {pathname} = useLocation()
+  console.log('pathname', pathname)
   return (
     <>
-      <nav className="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <nav className="navbar navbar-expand-md navbar-dark w-100 bg-dark">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/sign-up">
             Project Manager
@@ -34,12 +36,23 @@ export default function NavBar() {
                 </Link>
               </li> */}
 
-              <li className="nav-item">
+              <li
+                className={`nav-item${pathname === '/projects' && ' active'}`}>
                 {/* "active" is a class that could be used if the tab is currently open*/}
+                <Link
+                  to="/projects"
+                  className={`nav-link${
+                    pathname === '/projects' && ' active'
+                  }`}>
+                  Projects
+                </Link>
+              </li>
+              {/* "active" is a class that could be used if the tab is currently open*/}
+              {/* <li className="nav-item">
                 <Link className="nav-link" href="#">
                   Link
                 </Link>
-              </li>
+              </li> */}
 
               {/* <li className="nav-item">
                 <Link className="nav-link disabled" aria-disabled="true">
@@ -84,7 +97,10 @@ export default function NavBar() {
               {signedIn && (
                 <>
                   <li className="nav-item">
-                    <Link onClick={handleSignOut} to="/sign-up" className="nav-link">
+                    <Link
+                      onClick={handleSignOut}
+                      to="/sign-up"
+                      className="nav-link">
                       Sign Out
                     </Link>
                   </li>
