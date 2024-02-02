@@ -3,6 +3,7 @@ import * as Icon from 'react-bootstrap-icons';
 import ModalTitleBodyEdit from './ModalTitleBodyEdit';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { deleteBoard, editBoard } from '../lib';
 
 type Props = {
   projectId: number;
@@ -18,8 +19,7 @@ export default function Board({
   boardId,
   projectId,
 }: Props) {
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const [header, setHeader] = useState('a');
@@ -32,19 +32,13 @@ export default function Board({
     try {
       if (isLoading) return;
       setIsLoading(true);
-      if (action === 'create-board') {
-        const result = await createBoard({
-          projectId,
-          title,
-          body,
-        });
-        // onNewBoard(result);
-        // navigate(0)
 
-      } else if (action === 'edit-project') {
+      if (action === 'edit-board') {
         console.log('edit project pre');
-        const result = await editBoard(projectId, title);
+        console.log('body', body);
+        const result = await editBoard(boardId, title, body);
         console.log('edit project', result);
+        navigate(0)
         // onNewProject(result);
       }
     } catch (err) {
@@ -59,18 +53,16 @@ export default function Board({
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
     setAction('edit-board');
-    setShowBody(false);
+    setShowBody(true);
   }
 
   async function handleDeleteBoardClicked(event) {
     try {
       if (isLoading) return;
       setIsLoading(true);
-      console.log('delete  pre');
-      console.log('projectId', projectId);
-      const result = await deleteBoard(projectId);
-      console.log('delete post', result);
-      // navigate(0);
+
+      const result = await deleteBoard(boardId);
+      navigate(0);
       // onNewProject(result);
     } catch (err) {
       console.log(err);

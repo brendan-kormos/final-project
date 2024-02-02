@@ -219,40 +219,36 @@ app.post(
 
 // create board
 
-app.post(
-  '/api/board/:projectId',
-  authMiddleware,
-  async (req, res, next) => {
-    try {
-      console.log('gor req for create board');
-      const { projectId } = req.params;
-      const { title, body } = req.body;
-      if (!projectId || !Number(projectId) || isNaN(projectId)) {
-        throw new ClientError(400, 'no projectId was provided');
-      }
-      if (!title) {
-        throw new ClientError(400, 'no title was provided');
-      }
+app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
+  try {
+    console.log('gor req for create board');
+    const { projectId } = req.params;
+    const { title, body } = req.body;
+    if (!projectId || !Number(projectId) || isNaN(projectId)) {
+      throw new ClientError(400, 'no projectId was provided');
+    }
+    if (!title) {
+      throw new ClientError(400, 'no title was provided');
+    }
 
-      if (!req.user) {
-        throw new ClientError(401, 'not logged in');
-      }
-      const sql = `
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const sql = `
       insert into "boards" ("projectId", "title", "description")
       values ($1, $2, $3)
       returning "projectId", "boardId", "description", "title"
     `;
 
-      const result = await db.query<Project>(sql, [projectId, title, body]);
-      const val = result.rows[0];
-      console.log('val', val);
+    const result = await db.query<Project>(sql, [projectId, title, body]);
+    const val = result.rows[0];
+    console.log('val', val);
 
-      res.status(201).json(val);
-    } catch (err) {
-      next(err);
-    }
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 //edit a project
 
@@ -323,6 +319,77 @@ app.delete(
     `;
 
       const result = await db.query<Project>(sql, [projectId]);
+      const val = result.rows[0];
+      console.log('val', val);
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+
+//delete board
+
+app.delete('/api/board/:boardId', authMiddleware, async (req, res, next) => {
+  try {
+    console.log('made it to server');
+    const { boardId } = req.params;
+    if (!boardId || !Number(boardId) || isNaN(boardId)) {
+      throw new ClientError(400, 'no boardId was provided');
+    }
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const boardsSql = `
+        delete from "boards"
+        where "boardId" = $1
+        returning *;
+      `;
+
+    const result = await db.query(boardsSql, [boardId]);
+
+    const val = result.rows[0];
+
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//edit a board
+
+app.put(
+  '/api/board/:boardId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      console.log('gor req for create board');
+      const { boardId, title } = req.params;
+      const { body } = req.body
+      console.log('body', body)
+
+      if (!boardId || !Number(boardId) || isNaN(boardId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      update "boards"
+      set "title" = $2, "description" = $3
+      where "boardId" = $1
+      returning "boardId", "title"
+    `;
+
+      const result = await db.query<Project>(sql, [boardId, title, body]);
       const val = result.rows[0];
       console.log('val', val);
 

@@ -95,7 +95,6 @@ export async function createBoard({ projectId, title, body }) {
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
     body: JSON.stringify({
-      title,
       body,
     }),
   };
@@ -114,11 +113,44 @@ export async function deleteProject(projectId) {
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
   };
-  console.log('preRes');
+
   const res = await fetch('/api/project/' + projectId, req);
-  console.log('res', res);
-  // const json = await res.json();
+  const json = await res.json();
   // console.log('json', json);
-  if (!res.ok) throw new Error(`fetch Error ${res.status}. `);
-  // return json;
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
+}
+
+export async function deleteBoard(boardId) {
+  const req = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+  };
+
+  const res = await fetch('/api/board/' + boardId, req);
+  const json = await res.json();
+  // console.log('json', json);
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
+}
+
+export async function editBoard(boardId: number, title: string, body: string) {
+  const req = {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+    body: JSON.stringify({
+      body,
+    }),
+  };
+  const res = await fetch('/api/board/' + boardId + '/' + title, req);
+  console.log('edit res', res);
+  const json = await res.json();
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
 }
