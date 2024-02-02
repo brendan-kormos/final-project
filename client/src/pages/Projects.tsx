@@ -8,7 +8,7 @@ export default function Projects() {
     <>
       <NavBar />
 
-      <div className="container">
+      <div className="container py-2">
         <Project />
       </div>
 
