@@ -27,7 +27,6 @@ export default function Project({
   const [action, setAction] = useState('');
   const [showBody, setShowBody] = useState(true);
   const navigate = useNavigate();
-  console.log('project projectId', projectId)
 
   async function handleModalFormSubmit(title, body) {
     console.log(projectId, title, body);
@@ -47,6 +46,7 @@ export default function Project({
         console.log('edit project pre');
         const result = await editProject(projectId, title);
         console.log('edit project', result);
+        navigate(0)
         // onNewProject(result);
       }
     } catch (err) {

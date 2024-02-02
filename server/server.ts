@@ -266,10 +266,10 @@ app.put(
         throw new ClientError(401, 'not logged in');
       }
       const sql = `
-      update "projects"
-      set "title" = $2
-      where "projectId" = $1
-      returning "projectId", "title", "ownerId"
+        update "projects"
+        set "title" = $2
+        where "projectId" = $1
+        returning "projectId", "title", "ownerId"
     `;
 
       const result = await db.query<Project>(sql, [projectId, title]);

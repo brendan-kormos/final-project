@@ -73,7 +73,7 @@ export default function Projects() {
   }
 
   function handleNewBoard(board: Board) {
-    setBoards((array)=> [...array, board])
+    setBoards((array) => [...array, board]);
   }
 
   if (!projects) return null;
@@ -120,7 +120,6 @@ export default function Projects() {
         </button>
       </ul>
 
-
       {/* <div className="card">
         <div className="card-body">
           <h5 className="card-title">Card title</h5>
@@ -138,7 +137,6 @@ export default function Projects() {
           alt="..."
         />
       </div> */}
-
     </>
   );
 }
