@@ -17,7 +17,6 @@ CREATE TABLE "public"."projects" (
   "projectId" serial PRIMARY KEY,
   "title" varchar,
   "ownerId" integer,
-  "boardId" integer,
   "createdAt" timestamp DEFAULT (now())
 );
 
@@ -42,4 +41,4 @@ ALTER TABLE "public"."projects" ADD FOREIGN KEY ("ownerId") REFERENCES "public".
 
 ALTER TABLE "public"."boards" ADD FOREIGN KEY ("projectId") REFERENCES "public"."projects" ("projectId");
 
-ALTER TABLE "public"."boards" ADD FOREIGN KEY ("boardId") REFERENCES "public"."boardObjects" ("boardId");
+-- ALTER TABLE "public"."boards" ADD FOREIGN KEY ("boardId") REFERENCES "public"."boardObjects" ("boardId");

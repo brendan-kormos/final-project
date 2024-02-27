@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import express from 'express';
 import argon2 from 'argon2';
-import pg from 'pg';
+import pg, { Client } from 'pg';
 import jwt from 'jsonwebtoken';
 import {
   ClientError,
@@ -20,6 +20,12 @@ type User = {
 type Auth = {
   username: string;
   password: string;
+};
+
+type Project = {
+  projectId: number;
+  title: string;
+  ownerId: number;
 };
 
 const connectionString =
@@ -41,9 +47,9 @@ const app = express();
 const reactStaticDir = new URL('../client/dist', import.meta.url).pathname;
 const uploadsStaticDir = new URL('public', import.meta.url).pathname;
 
-app.use(express.static(reactStaticDir));
+// app.use(express.static(reactStaticDir));
 // Static directory for file uploads server/public/
-app.use(express.static(uploadsStaticDir));
+// app.use(express.static(uploadsStaticDir));
 app.use(express.json());
 
 app.post('/api/auth/sign-up', async (req, res, next) => {
@@ -113,22 +119,279 @@ app.post('/api/auth/sign-in', async (req, res, next) => {
   }
 });
 
-app.get('/api/entries', authMiddleware, async (req, res, next) => {
+// get all projects
+
+app.get('/api/projects', authMiddleware, async (req, res, next) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
     }
-    const sql = `
-      select * from "entries"
-        where "userId" = $1
-        order by "entryId" desc;
+    const projectsSql = `
+      select "projectId", "title", "ownerId"
+      from "projects"
+      where "ownerId" = $1
+      order by "projectId" asc
     `;
-    const result = await db.query<User>(sql, [req.user?.userId]);
-    res.status(201).json(result.rows);
+    const projectsResult = await db.query<Project>(projectsSql, [
+      req.user.userId,
+    ]);
+    const projectsVal = projectsResult.rows;
+
+    const boardsSql = `
+      SELECT
+        boards."boardId",
+        boards."title",
+        boards."description",
+        projects."projectId"
+      FROM
+        "public"."boards"
+      JOIN
+        "public"."projects" ON boards."projectId" = projects."projectId"
+      WHERE
+        projects."ownerId" = $1
+        order by boards."boardId" asc
+    `;
+    const boardsResult = await db.query<Project>(boardsSql, [req.user.userId]);
+    const boardsVal = boardsResult.rows;
+
+    res.status(201).json({ boards: boardsVal, projects: projectsVal });
   } catch (err) {
     next(err);
   }
 });
+
+//get project
+
+app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const sql = `
+      select "title", "ownerId"
+      from "projects"
+      where "ownerId" = $1 and "projectId" = $2
+    `;
+    const result = await db.query<Project>(sql, [user.userId, projectId]);
+    const val = result.rows[0];
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// create project
+app.post(
+  '/api/project/:ownerId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { ownerId, title } = req.params;
+
+      if (!ownerId) {
+        throw new ClientError(400, 'no ownerId was provided');
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      insert into "projects" ("ownerId", "title")
+      values ($1, $2)
+      returning "projectId", "ownerId", "title"
+    `;
+      const result = await db.query<Project>(sql, [req.user?.userId, title]);
+      const val = result.rows[0];
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// create board
+
+app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+    const { title, body } = req.body;
+    if (!projectId || !Number(projectId) || isNaN(projectId)) {
+      throw new ClientError(400, 'no projectId was provided');
+    }
+    if (!title) {
+      throw new ClientError(400, 'no title was provided');
+    }
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const sql = `
+      insert into "boards" ("projectId", "title", "description")
+      values ($1, $2, $3)
+      returning "projectId", "boardId", "description", "title"
+    `;
+
+    const result = await db.query<Project>(sql, [projectId, title, body]);
+    const val = result.rows[0];
+
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//edit a project
+
+app.put(
+  '/api/project/:projectId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      console.log('gor req for create board');
+      const { projectId, title } = req.params;
+      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+        update "projects"
+        set "title" = $2
+        where "projectId" = $1
+        returning "projectId", "title", "ownerId"
+    `;
+
+      const result = await db.query<Project>(sql, [projectId, title]);
+      const val = result.rows[0];
+      console.log('val', val);
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//delete a project
+
+app.delete(
+  '/api/project/:projectId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      console.log('made it to server');
+      const { projectId } = req.params;
+      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+
+      const boardsSql = `
+        delete from "boards"
+        where "projectId" = $1
+        returning *;
+      `;
+
+      await db.query(boardsSql, [projectId]);
+
+      const sql = `
+      delete from "projects"
+        where "projectId" = $1
+        returning *;
+    `;
+
+      const result = await db.query<Project>(sql, [projectId]);
+      const val = result.rows[0];
+      console.log('val', val);
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+
+//delete board
+
+app.delete('/api/board/:boardId', authMiddleware, async (req, res, next) => {
+  try {
+    console.log('made it to server');
+    const { boardId } = req.params;
+    if (!boardId || !Number(boardId) || isNaN(boardId)) {
+      throw new ClientError(400, 'no boardId was provided');
+    }
+
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const boardsSql = `
+        delete from "boards"
+        where "boardId" = $1
+        returning *;
+      `;
+
+    const result = await db.query(boardsSql, [boardId]);
+
+    const val = result.rows[0];
+
+    res.status(201).json(val);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//edit a board
+
+app.put(
+  '/api/board/:boardId/:title',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { boardId, title } = req.params;
+      const { body } = req.body
+
+      if (!boardId || !Number(boardId) || isNaN(boardId)) {
+        throw new ClientError(400, 'no projectId was provided');
+      }
+      if (!title) {
+        throw new ClientError(400, 'no title was provided');
+      }
+
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const sql = `
+      update "boards"
+      set "title" = $2, "description" = $3
+      where "boardId" = $1
+      returning "boardId", "title"
+    `;
+
+      const result = await db.query<Project>(sql, [boardId, title, body]);
+      const val = result.rows[0];
+
+      res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello, World!' });

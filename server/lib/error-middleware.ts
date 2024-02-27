@@ -12,6 +12,7 @@ export function errorMiddleware(
   if (err instanceof ClientError) {
     res.status(err.status).json({ error: err.message });
   } else if (err instanceof jwt.JsonWebTokenError) {
+    // throw new Error("invalid access token error")
     res.status(401).json({ error: 'invalid access token' });
   } else {
     console.error(err);
