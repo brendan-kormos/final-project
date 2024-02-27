@@ -2,7 +2,7 @@ import { Button } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 import ModalTitleBodyEdit from './ModalTitleBodyEdit';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { deleteBoard, editBoard } from '../lib';
 
 type Props = {
@@ -86,11 +86,11 @@ export default function Board({
           style={{ top: 16, left: 12 }}
         />
         <div className="card-body ps-5">
-          <a
-            href="http://localhost:5174/createjs.html"
+          <Link
+            to={"/board/"+boardId}
             className="btn p-0 text-start bg-transparent ">
             <h5 className="card-title text-start h5">{title}</h5>
-          </a>
+          </Link>
 
           <p className="card-text text-start">
             {description}

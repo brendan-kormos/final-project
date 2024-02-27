@@ -68,6 +68,7 @@ export default function Project({
   }
 
   function handleEditProjectClicked(event) {
+    console.log('targetId', targetId);
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');

@@ -34,6 +34,7 @@ CREATE TABLE "public"."boardObjects" (
   "x" integer,
   "y" integer,
   "type" varchar,
+  "content" varchar,
   "createdAt" timestamp DEFAULT (now())
 );
 

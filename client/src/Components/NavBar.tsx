@@ -1,20 +1,28 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, forwardRef } from 'react';
 import { Button } from 'react-bootstrap';
-import { Link, Outlet, Route, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Link,
+  Outlet,
+  Route,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { AppContext, AppContextValues } from './AppContext';
 import { type Auth, signIn, signUp } from '../lib';
 
-export default function NavBar() {
+export default forwardRef(function NavBar({}, ref) {
   const navigate = useNavigate();
-  const { handleSignOut, user: signedIn } = useContext(AppContext)
-  console.log(signedIn)
-    useContext<AppContextValues>(AppContext);
+  const { handleSignOut, user: signedIn } = useContext(AppContext);
+  console.log(signedIn);
+  useContext<AppContextValues>(AppContext);
   // const signedIn = context.user;
-  const {pathname} = useLocation()
-  console.log('pathname', pathname)
+  const { pathname } = useLocation();
+  console.log('pathname', pathname);
   return (
     <>
-      <nav className="navbar navbar-expand-md navbar-dark w-100 bg-dark">
+      <nav
+        ref={ref}
+        className="navbar navbar-expand-md navbar-dark w-100 bg-dark">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/sign-up">
             Project Manager
@@ -118,4 +126,4 @@ export default function NavBar() {
       </nav>
     </>
   );
-}
+});

@@ -6,6 +6,7 @@ import { AppContext } from './Components/AppContext';
 
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import BoardCanvas from './pages/BoardCanvas'
 import NavBar from './Components/Navbar';
 import React from 'react';
 
@@ -62,7 +63,9 @@ export default function App() {
         <Route index path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/board/:boardId" element={<BoardCanvas />} />
         <Route path="*" element={<SignUp />} />
+
         {/* </Route> */}
       </Routes>
     </AppContext.Provider>
