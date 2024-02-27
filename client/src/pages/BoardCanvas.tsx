@@ -272,13 +272,18 @@ export default function BoardCanvas() {
 
     return () => {
       //cleanup
+      $container.removeEventListener('mousedown', onMouseDown);
+      $container.removeEventListener('mouseup', onMouseUp);
+      $html.removeEventListener('mouseout', onMouseOut); // unclick mouse if out of canvas
+      $container.removeEventListener('mousemove', onMouseMove);
+      $container.removeEventListener('wheel', onMouseWheel);
     };
   }, [loadSuccess]);
 
   return (
     <>
       <div
-        id="container"
+        id="canvas-container"
         ref={containerRef}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0 }}>
         <canvas
