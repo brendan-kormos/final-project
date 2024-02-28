@@ -13,11 +13,9 @@ import { type Auth, signIn, signUp } from '../lib';
 export default forwardRef(function NavBar({}, ref) {
   const navigate = useNavigate();
   const { handleSignOut, user: signedIn } = useContext(AppContext);
-  console.log(signedIn);
   useContext<AppContextValues>(AppContext);
   // const signedIn = context.user;
   const { pathname } = useLocation();
-  console.log('pathname', pathname);
   return (
     <>
       <nav
