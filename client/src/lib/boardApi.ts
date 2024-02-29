@@ -68,3 +68,21 @@ export async function requestCreateButton(
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
   return json;
 }
+
+export async function requestEditObject(
+  data: BoardObjectData
+): Promise<BoardObjectData[]> {
+  console.log('token', sessionStorage.getItem('token'));
+  const req = {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+    body: JSON.stringify(data),
+  };
+  const res = await fetch(`/api/board/edit`, req);
+  const json = await res.json();
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
+}

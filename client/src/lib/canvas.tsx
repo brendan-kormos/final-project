@@ -86,7 +86,7 @@ export function renderInstance(essentials: Essentials, data: BoardObjectData) {
   const domElement = new createjs.DOMElement($element);
   stage.addChild(domElement);
   domElement.parent = stage;
-
+  domElement.boardObjectId = data.boardObjectId
   console.log('domElement', domElement);
   console.dir($element);
   domElement.x = data.anchorMiddle ? data.x - width / 2 : data.x;

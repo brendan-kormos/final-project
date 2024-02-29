@@ -26,12 +26,17 @@ import {
   createGenericBoardObject,
   getBoardObjects,
   requestCreateButton,
+  requestEditObject,
 } from '../lib/boardApi';
 import { useRouter } from 'next/router';
 import { useLocation, useParams } from 'react-router-dom';
 import { findDOMNode, render } from 'react-dom';
 import { Navbar } from 'react-bootstrap';
-import { BoardObjectData, getDOMElementByHTMLElement, renderInstance } from '../lib/canvas';
+import {
+  BoardObjectData,
+  getDOMElementByHTMLElement,
+  renderInstance,
+} from '../lib/canvas';
 
 type ProjectList = ProjectType[];
 // type BoardList =
@@ -77,7 +82,7 @@ export default function BoardCanvas() {
           }
           setLoadSuccess(true);
           console.log('load success');
-          console.log('stage', stage)
+          console.log('stage', stage);
           const width = innerWidth;
           const height = innerHeight;
           const initialScale = 1;
@@ -101,7 +106,7 @@ export default function BoardCanvas() {
           let mouseDownStartX, mouseDownStartY;
           let mouseDownOnCanvas;
           let mouseDownOnButton;
-          let buttonMouseOffsetX, buttonMouseOffsetY
+          let buttonMouseOffsetX, buttonMouseOffsetY;
 
           stage.scale = initialScale;
           stage.canvas.width = width;
@@ -137,15 +142,13 @@ export default function BoardCanvas() {
               rightMouseDown = true;
               leftMouseDown = false;
             }
-
+            const $button = $target?.closest('.canvas-button');
             if ($target.id === 'board-canvas') {
               mouseDownOnCanvas = true;
-            } else if ($target?.classList?.contains('canvas-button')) {
-              mouseDownOnButton = getDOMElementByHTMLElement(stage, $target)
+            } else if ($button) {
+              mouseDownOnButton = getDOMElementByHTMLElement(stage, $button);
               buttonMouseOffsetX = prevLocalCursorX - mouseDownOnButton.x;
               buttonMouseOffsetY = prevLocalCursorY - mouseDownOnButton.y;
-              console.log('clickEvent', event)
-              console.log(mouseDownOnButton)
             }
             const [cursorX, cursorY] = cursorPos(event);
             mouseDownStartX = cursorX;
@@ -174,8 +177,17 @@ export default function BoardCanvas() {
             localCursorX = x;
             localCursorY = y;
 
+            if (
+              mouseDownOnButton &&
+              (cursorX != mouseDownStartX || cursorY != mouseDownStartY)
+            ) {
+              onButtonUndrag(event);
+            }
+
             mouseDownOnCanvas = false;
             mouseDownOnButton = null;
+            buttonMouseOffsetY = null;
+            buttonMouseOffsetX = null;
             // console.log('localPos', localCursorX);
             // console.log('scaledPosX', scaledCursorPos(cursorX))
           }
@@ -224,8 +236,8 @@ export default function BoardCanvas() {
                 dragStageY += yDiff;
                 stage.x = scrollStageX + dragStageX;
                 stage.y = scrollStageY + dragStageY;
-              }else if (mouseDownOnButton){
-                onButtonDrag(event)
+              } else if (mouseDownOnButton) {
+                onButtonDrag(event);
               }
             }
 
@@ -274,17 +286,28 @@ export default function BoardCanvas() {
             scrollStageY = stage.y;
           }
 
-          async function onButtonDrag(event) {
+          function onButtonDrag(event) {
+            const button: createjs.DOMElement = mouseDownOnButton;
+            const $button = button.htmlElement;
 
-            const button:createjs.DOMElement = mouseDownOnButton
-            const $button = button.htmlElement
-            console.dir($button)
-
-
-            button.x = gridLocked(localCursorX - buttonMouseOffsetX)
-            button.y = gridLocked(localCursorY - buttonMouseOffsetY)
+            button.x = gridLocked(localCursorX - buttonMouseOffsetX);
+            button.y = gridLocked(localCursorY - buttonMouseOffsetY);
           }
-
+          async function onButtonUndrag(event) {
+            console.log('boardObjectId', mouseDownOnButton.boardObjectId);
+            const data = {
+              boardId,
+              boardObjectId: mouseDownOnButton.boardObjectId,
+              x: mouseDownOnButton.x,
+              y: mouseDownOnButton.y,
+            };
+            try {
+              const result = await requestEditObject(data);
+              console.log(result);
+            } catch (error) {
+              console.log(error);
+            }
+          }
           async function onCanvasClicked(event) {
             const data = {
               x: gridLocked(localCursorX),
@@ -293,12 +316,14 @@ export default function BoardCanvas() {
               title: 'New idea',
               content: '',
             };
-            const result = await requestCreateButton(boardId, data);
-            for (let i = 0; i < result.length; i++) {
-              renderInstance(essentialsObj, result[i]);
+            try {
+              const result = await requestCreateButton(boardId, data);
+              for (let i = 0; i < result.length; i++) {
+                renderInstance(essentialsObj, result[i]);
+              }
+            } catch (error) {
+              console.error(error);
             }
-            console.log('RESULT ', result);
-            //
           }
 
           function onMouseClick(event) {

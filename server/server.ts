@@ -490,6 +490,58 @@ app.post(
   }
 );
 
+app.put('/api/board/edit/', authMiddleware, async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const { content, x, y, type, title, boardObjectId, boardId } = req.body;
+    const boardBelongsSQL = `
+     SELECT bo.*
+      FROM "public"."boardObjects" bo
+      JOIN "public"."boards" b ON bo."boardId" = b."boardId"
+      JOIN "public"."projects" p ON b."projectId" = p."projectId"
+      WHERE p."ownerId" = $1
+      AND bo."boardId" = $2
+      AND bo."boardObjectId" = $3`;
+    const boardBelongsQuery = await db.query(boardBelongsSQL, [
+      req.user.userId,
+      boardId,
+      boardObjectId
+    ]);
+    if (boardBelongsQuery.rows[0] === undefined) {
+      throw new ClientError(401, 'board is not authorized');
+    }
+
+    const insertSql = `
+      UPDATE "boardObjects"
+      SET
+        "x" = COALESCE($2, "x"),
+        "y" = COALESCE($3, "y"),
+        "type" = COALESCE($4, "type"),
+        "title" = COALESCE($5, "title"),
+        "content" = COALESCE($6, "content")
+      WHERE "boardObjectId" = $1
+      RETURNING *
+`;
+
+    const insertResults = await db.query(insertSql, [
+      boardObjectId,
+      x,
+      y,
+      type,
+      title,
+      content,
+    ]);
+    const insertValue = insertResults.rows;
+    console.log('insert results', insertValue);
+    res.status(201).json(insertValue);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post(
   '/api/board/create/:boardId',
   authMiddleware,
@@ -500,7 +552,7 @@ app.post(
       }
       const { boardId } = req.params;
       const { content, x, y, type, title } = req.body;
-      console.log('here', content, x, y, type)
+      console.log('here', content, x, y, type);
       const boardBelongsSQL = `
       SELECT *
       FROM "public"."boards" b
