@@ -14,13 +14,24 @@ import {
 
 import { AppContext } from '../Components/AppContext';
 import NavBar from '../Components/NavBar';
-import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { createGenericBoardObject, getBoardObjects } from '../lib/boardApi';
+import {
+  MouseEvent,
+  forwardRef,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import {
+  createGenericBoardObject,
+  getBoardObjects,
+  requestCreateButton,
+} from '../lib/boardApi';
 import { useRouter } from 'next/router';
 import { useLocation, useParams } from 'react-router-dom';
 import { findDOMNode, render } from 'react-dom';
 import { Navbar } from 'react-bootstrap';
-import { renderInstance } from '../lib/canvas';
+import { BoardObjectData, getDOMElementByHTMLElement, renderInstance } from '../lib/canvas';
 
 type ProjectList = ProjectType[];
 // type BoardList =
@@ -45,6 +56,12 @@ export default function BoardCanvas() {
         const $container: HTMLElement = containerRef.current;
         const $html = document.documentElement;
 
+        const gridLockIncrement = 5;
+
+        function gridLocked(num: number) {
+          return gridLockIncrement * Math.round(num / gridLockIncrement);
+        }
+
         const stage = new createjs.Stage('board-canvas');
         const essentialsObj = {
           $canvas,
@@ -60,7 +77,7 @@ export default function BoardCanvas() {
           }
           setLoadSuccess(true);
           console.log('load success');
-
+          console.log('stage', stage)
           const width = innerWidth;
           const height = innerHeight;
           const initialScale = 1;
@@ -82,7 +99,8 @@ export default function BoardCanvas() {
           let prevCursorX, prevCursorY;
 
           let mouseDownStartX, mouseDownStartY;
-          let mouseDownOnCanvas
+          let mouseDownOnCanvas;
+          let mouseDownOnButton;
 
           stage.scale = initialScale;
           stage.canvas.width = width;
@@ -105,8 +123,8 @@ export default function BoardCanvas() {
           document.oncontextmenu = function () {
             return false;
           };
-          function onMouseDown(event) {
-            const $target = event.target
+          function onMouseDown(event: MouseEvent) {
+            const $target: HTMLElement = event.target;
             // detect left clicks
             if (event.button == 0) {
               leftMouseDown = true;
@@ -120,8 +138,11 @@ export default function BoardCanvas() {
             }
 
             if ($target.id === 'board-canvas') {
-              mouseDownOnCanvas = true
-              console.log('oncanvas')
+              mouseDownOnCanvas = true;
+            } else if ($target?.classList?.contains('canvas-button')) {
+              mouseDownOnButton = getDOMElementByHTMLElement(stage, $target)
+              console.log('clickEvent', event)
+              console.log(mouseDownOnButton)
             }
             const [cursorX, cursorY] = cursorPos(event);
             mouseDownStartX = cursorX;
@@ -151,6 +172,7 @@ export default function BoardCanvas() {
             localCursorY = y;
 
             mouseDownOnCanvas = false;
+            mouseDownOnButton = null;
             // console.log('localPos', localCursorX);
             // console.log('scaledPosX', scaledCursorPos(cursorX))
           }
@@ -167,7 +189,7 @@ export default function BoardCanvas() {
 
           let foundNan = false;
           function onMouseMove(event) {
-            const $target = event.target
+            const $target = event.target;
             // get mouse position
             const [cursorX, cursorY] = cursorPos(event);
 
@@ -179,8 +201,6 @@ export default function BoardCanvas() {
             // y = Math.round(y);
             localCursorX = x;
             localCursorY = y;
-
-
 
             const xDiff = cursorX - prevCursorX;
             const yDiff = cursorY - prevCursorY;
@@ -201,8 +221,9 @@ export default function BoardCanvas() {
                 dragStageY += yDiff;
                 stage.x = scrollStageX + dragStageX;
                 stage.y = scrollStageY + dragStageY;
+              }else if (mouseDownOnButton){
+                onButtonDrag(event)
               }
-
             }
 
             prevLocalCursorX = localCursorX;
@@ -250,14 +271,32 @@ export default function BoardCanvas() {
             scrollStageY = stage.y;
           }
 
-          function onCanvasClicked(event) {
-            renderInstance(essentialsObj, {
-              x: localCursorX,
-              y: localCursorY,
+          async function onButtonDrag(event) {
+
+            const button:createjs.DOMElement = mouseDownOnButton
+            const $button = button.htmlElement
+            console.dir($button)
+            const xDiff = prevLocalCursorX - button.x
+            const yDiff = prevLocalCursorY - button.y;
+            console.log('xDiff', xDiff)
+            button.x = localCursorX - xDiff
+            button.y = localCursorY - yDiff
+          }
+
+          async function onCanvasClicked(event) {
+            const data = {
+              x: gridLocked(localCursorX),
+              y: gridLocked(localCursorY),
               type: 'button',
-              content: 'rendered button',
-              anchorMiddle: true,
-            });
+              title: 'New idea',
+              content: '',
+            };
+            const result = await requestCreateButton(boardId, data);
+            for (let i = 0; i < result.length; i++) {
+              renderInstance(essentialsObj, result[i]);
+            }
+            console.log('RESULT ', result);
+            //
           }
 
           function onMouseClick(event) {

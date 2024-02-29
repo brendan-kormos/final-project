@@ -1,3 +1,5 @@
+import {BoardObjectData} from "./canvas"
+
 export type CreateProject = {
   title: string;
   ownerId: number;
@@ -43,6 +45,25 @@ export async function createGenericBoardObject(boardId: number): Promise<Project
     },
   };
   const res = await fetch('/api/board/generic/' + boardId, req);
+  const json = await res.json();
+  if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
+  return json;
+}
+
+export async function requestCreateButton(
+  boardId: number,
+  data:BoardObjectData
+): Promise<BoardObjectData[]> {
+  console.log('token', sessionStorage.getItem('token'));
+  const req = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+    body: JSON.stringify(data)
+  };
+  const res = await fetch('/api/board/create/' + boardId, req);
   const json = await res.json();
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
   return json;

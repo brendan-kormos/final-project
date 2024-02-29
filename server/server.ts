@@ -461,13 +461,13 @@ app.post(
       SELECT *
       FROM "public"."boards" b
       JOIN "public"."projects" p ON b."projectId" = p."projectId"
-      WHERE p."ownerId" = $1 and b."boardId" = $2`
+      WHERE p."ownerId" = $1 and b."boardId" = $2`;
       const boardBelongsQuery = await db.query(boardBelongsSQL, [
         req.user.userId,
         boardId,
       ]);
-      if (boardBelongsQuery.rows[0] === undefined){
-        throw new ClientError(401, "board is not authorized")
+      if (boardBelongsQuery.rows[0] === undefined) {
+        throw new ClientError(401, 'board is not authorized');
       }
 
       const insertSql = `
@@ -480,10 +480,58 @@ app.post(
         returning *
       `;
 
-      const insertResults = await db.query(insertSql, [
+      const insertResults = await db.query(insertSql, [boardId]);
+      const insertValue = insertResults.rows;
+      console.log('insert results', insertValue);
+      res.status(201).json(insertValue);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
+  '/api/board/create/:boardId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const { boardId } = req.params;
+      const { content, x, y, type } = req.body;
+      console.log('here', content, x, y, type)
+      const boardBelongsSQL = `
+      SELECT *
+      FROM "public"."boards" b
+      JOIN "public"."projects" p ON b."projectId" = p."projectId"
+      WHERE p."ownerId" = $1 and b."boardId" = $2`;
+      const boardBelongsQuery = await db.query(boardBelongsSQL, [
+        req.user.userId,
         boardId,
       ]);
-      const insertValue = insertResults.rows
+      if (boardBelongsQuery.rows[0] === undefined) {
+        throw new ClientError(401, 'board is not authorized');
+      }
+
+      const insertSql = `
+      insert into "boardObjects" ("boardId", "x", "y", "type", "content")
+      values ($1,
+        $2,
+        $3,
+        $4,
+        $5)
+        returning *
+      `;
+
+      const insertResults = await db.query(insertSql, [
+        boardId,
+        x,
+        y,
+        type,
+        content,
+      ]);
+      const insertValue = insertResults.rows;
       console.log('insert results', insertValue);
       res.status(201).json(insertValue);
     } catch (err) {
