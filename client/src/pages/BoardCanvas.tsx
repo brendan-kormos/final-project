@@ -74,15 +74,12 @@ export default function BoardCanvas() {
           $html,
           stage,
         };
-        console.log('result', result);
         if (result) {
           for (let i = 0; i < result.length; i++) {
             const obj = result[i];
             renderInstance(essentialsObj, obj);
           }
           setLoadSuccess(true);
-          console.log('load success');
-          console.log('stage', stage);
           const width = innerWidth;
           const height = innerHeight;
           const initialScale = 1;
@@ -188,8 +185,6 @@ export default function BoardCanvas() {
             mouseDownOnButton = null;
             buttonMouseOffsetY = null;
             buttonMouseOffsetX = null;
-            // console.log('localPos', localCursorX);
-            // console.log('scaledPosX', scaledCursorPos(cursorX))
           }
 
           function onMouseOut(event) {
@@ -294,7 +289,6 @@ export default function BoardCanvas() {
             button.y = gridLocked(localCursorY - buttonMouseOffsetY);
           }
           async function onButtonUndrag(event) {
-            console.log('boardObjectId', mouseDownOnButton.boardObjectId);
             const data = {
               boardId,
               boardObjectId: mouseDownOnButton.boardObjectId,
@@ -303,7 +297,6 @@ export default function BoardCanvas() {
             };
             try {
               const result = await requestEditObject(data);
-              console.log(result);
             } catch (error) {
               console.log(error);
             }

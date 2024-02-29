@@ -36,7 +36,7 @@ export type BoardObjectData = {
 
 export function getDOMElementByHTMLElement(
   stage: createjs.Stage,
-  $element: HTMLElement
+  $element: Element
 ) {
   return stage.children.find((value, index) => {
     if (value.htmlElement === $element){

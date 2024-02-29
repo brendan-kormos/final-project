@@ -1,6 +1,6 @@
 import { Button } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
-import ModalTitleBodyEdit from './ModalTitleBodyEdit';
+import ModalTitleBodyEdit from './CustomModal';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { deleteBoard, editBoard } from '../lib';

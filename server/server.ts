@@ -219,8 +219,10 @@ app.post(
 
 app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
   try {
+
     const { projectId } = req.params;
     const { title, body } = req.body;
+    console.log('create a board')
     if (!projectId || !Number(projectId) || isNaN(projectId)) {
       throw new ClientError(400, 'no projectId was provided');
     }
@@ -282,7 +284,6 @@ app.put(
         req.user.userId,
       ]);
       const val = result.rows[0];
-      console.log('val', val);
 
       res.status(201).json(val);
     } catch (err) {
@@ -298,7 +299,6 @@ app.delete(
   authMiddleware,
   async (req, res, next) => {
     try {
-      console.log('made it to server');
       const { projectId } = req.params;
       if (!projectId || !Number(projectId) || isNaN(projectId)) {
         throw new ClientError(400, 'no projectId was provided');
@@ -324,7 +324,6 @@ app.delete(
 
       const result = await db.query<Project>(sql, [projectId]);
       const val = result.rows[0];
-      console.log('val', val);
 
       res.status(201).json(val);
     } catch (err) {
@@ -372,7 +371,7 @@ app.put(
     try {
       const { boardId, title } = req.params;
       const { body } = req.body;
-
+      console.log('made it to board edit', boardId)
       if (!boardId || !Number(boardId) || isNaN(boardId)) {
         throw new ClientError(400, 'no projectId was provided');
       }
@@ -552,7 +551,6 @@ app.post(
       }
       const { boardId } = req.params;
       const { content, x, y, type, title } = req.body;
-      console.log('here', content, x, y, type);
       const boardBelongsSQL = `
       SELECT *
       FROM "public"."boards" b
@@ -586,7 +584,6 @@ app.post(
         content,
       ]);
       const insertValue = insertResults.rows;
-      console.log('insert results', insertValue);
       res.status(201).json(insertValue);
     } catch (err) {
       next(err);
