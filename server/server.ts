@@ -499,7 +499,7 @@ app.post(
         throw new ClientError(401, 'not logged in');
       }
       const { boardId } = req.params;
-      const { content, x, y, type } = req.body;
+      const { content, x, y, type, title } = req.body;
       console.log('here', content, x, y, type)
       const boardBelongsSQL = `
       SELECT *
@@ -515,12 +515,13 @@ app.post(
       }
 
       const insertSql = `
-      insert into "boardObjects" ("boardId", "x", "y", "type", "content")
+      insert into "boardObjects" ("boardId", "x", "y", "type", "title", "content")
       values ($1,
         $2,
         $3,
         $4,
-        $5)
+        $5,
+        $6)
         returning *
       `;
 
@@ -529,6 +530,7 @@ app.post(
         x,
         y,
         type,
+        title,
         content,
       ]);
       const insertValue = insertResults.rows;

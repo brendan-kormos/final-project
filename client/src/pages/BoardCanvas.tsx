@@ -101,6 +101,7 @@ export default function BoardCanvas() {
           let mouseDownStartX, mouseDownStartY;
           let mouseDownOnCanvas;
           let mouseDownOnButton;
+          let buttonMouseOffsetX, buttonMouseOffsetY
 
           stage.scale = initialScale;
           stage.canvas.width = width;
@@ -141,6 +142,8 @@ export default function BoardCanvas() {
               mouseDownOnCanvas = true;
             } else if ($target?.classList?.contains('canvas-button')) {
               mouseDownOnButton = getDOMElementByHTMLElement(stage, $target)
+              buttonMouseOffsetX = prevLocalCursorX - mouseDownOnButton.x;
+              buttonMouseOffsetY = prevLocalCursorY - mouseDownOnButton.y;
               console.log('clickEvent', event)
               console.log(mouseDownOnButton)
             }
@@ -276,11 +279,10 @@ export default function BoardCanvas() {
             const button:createjs.DOMElement = mouseDownOnButton
             const $button = button.htmlElement
             console.dir($button)
-            const xDiff = prevLocalCursorX - button.x
-            const yDiff = prevLocalCursorY - button.y;
-            console.log('xDiff', xDiff)
-            button.x = localCursorX - xDiff
-            button.y = localCursorY - yDiff
+
+
+            button.x = gridLocked(localCursorX - buttonMouseOffsetX)
+            button.y = gridLocked(localCursorY - buttonMouseOffsetY)
           }
 
           async function onCanvasClicked(event) {
