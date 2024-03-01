@@ -54,10 +54,10 @@ export function getDOMElementIndexByBoardObjectId(
 
 function Button({ title, content }) {
   return (
-    <button className="canvas-button card btn btn-light">
+    <button className="canvas-button card btn btn-light overflow-hidden">
       {/* <div className="card-body "> */}
 
-      <p className="card-text text-start">{title}</p>
+      <p className="card-text text-start w-100 h-100">{title}</p>
       {/* </div> */}
     </button>
   );
