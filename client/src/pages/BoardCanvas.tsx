@@ -95,9 +95,20 @@ export default function BoardCanvas() {
   const [bodyContent, setBodyContent] = useState('');
   const [header, setHeader] = useState('');
   const [stage, setStage] = useState<createjs.Stage | null>(null);
+  const [editing, setEditing] = useState<{
+    domElement: createjs.DOMElement;
+    boardObject;
+  }>();
 
-  function handleModalFormSubmit(title, body) {
+  async function handleModalFormSubmit(title, body) {
     console.log('submit', title, body);
+
+    const { boardObject, domElement } = editing;
+    console.log(boardObject, domElement);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   // useEffect(() => {}, []);
@@ -112,38 +123,10 @@ export default function BoardCanvas() {
         // const $canvas: HTMLCanvasElement = canvasRef.current;
         // const $container: HTMLElement = containerRef.current;
         // const $html = document.documentElement;
-        const stage = new createjs.Stage('board-canvas');
-        setStage(stage);
 
         if (result) {
-          essentialsObj.$canvas = canvasRef.current;
-          essentialsObj.$container = containerRef.current;
-          essentialsObj.$html = document.documentElement;
-          essentialsObj.stage = stage;
           setBoardObjects(result);
-          for (let i = 0; i < result.length; i++) {
-            const obj = result[i];
-            renderInstance(essentialsObj, obj);
-          }
           setLoadSuccess(true);
-          const width = innerWidth;
-          const height = innerHeight;
-          const initialScale = 1;
-
-          stage.scale = initialScale;
-          stage.canvas.width = width;
-          stage.canvas.height = height;
-          stage.snapToPixel = true;
-
-          function tick(event) {
-            stage.update(event);
-          }
-          createjs.Ticker.on('tick', tick);
-          createjs.Ticker.framerate = 60;
-
-          return () => {
-            createjs.Ticker.off('tick', tick)
-          };
         }
       } catch (err) {
         console.error(err);
@@ -176,9 +159,12 @@ export default function BoardCanvas() {
       return value.boardObjectId === button.boardObjectId;
     });
     setIsModalOpen(true);
+    setEditing({ domElement: button, boardObject });
     setHeader('Manage Idea');
+    setTitleContent(boardObject.title);
     setTitlePrompt('Edit Title');
     setBodyPrompt('Edit Body');
+    setBodyContent(boardObject.content);
   }
 
   function onButtonDrag(event) {
@@ -326,11 +312,6 @@ export default function BoardCanvas() {
       (cursorX != mouseDownStartX || cursorY != mouseDownStartY)
     ) {
       onButtonUndrag(event);
-    } else if (
-      mouseDownOnButton &&
-      cursorX === mouseDownStartX &&
-      cursorY === mouseDownStartY
-    ) {
     }
 
     mouseDownOnCanvas = false;
@@ -346,12 +327,8 @@ export default function BoardCanvas() {
     // get mouse position
     const [cursorX, cursorY] = cursorPos(event);
 
-    // const scaledX = scaledCursorPos(cursorX) - stage.x; // proper tested scaling -> world position aka globalToLocal position
-
     const { x, y } = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
 
-    // x = Math.round(x);
-    // y = Math.round(y);
     localCursorX = x;
     localCursorY = y;
 
@@ -396,15 +373,52 @@ export default function BoardCanvas() {
   }
 
   useEffect(() => {
+    if (!loadSuccess) return;
+    const stage = new createjs.Stage('board-canvas');
+    essentialsObj.$canvas = canvasRef.current;
+    essentialsObj.$container = containerRef.current;
+    essentialsObj.$html = document.documentElement;
+    essentialsObj.stage = stage;
+
+    setStage(stage);
+
+    for (let i = 0; i < boardObjects.length; i++) {
+      const obj = boardObjects[i];
+      renderInstance(essentialsObj, obj);
+    }
+
     const $html = document.documentElement;
     $html.addEventListener('mouseout', onMouseOut, false); // unclick mouse if out of canvas
+    function tick(event) {
+      stage.update(event);
+    }
+
+    const initialScale = 1;
+
+    stage.scale = initialScale;
+    stage.canvas.width = innerWidth;
+    stage.canvas.height = innerHeight;
+    stage.snapToPixel = true;
+
+    createjs.Ticker.on('tick', tick);
+    createjs.Ticker.framerate = 60;
+    window.onresize = function () {
+      stage.canvas.width = innerWidth;
+      stage.canvas.height = innerHeight;
+    };
+
     return () => {
+      console.log('cleanup');
       $html.removeEventListener('mouseout', onMouseOut);
       document.oncontextmenu = null;
       if (stage) {
-        for (let i=0;i<stage.children.length;i++){
-          stage.children[i].htmlElement.remove()
+        for (let i = 0; i < stage.children.length; i++) {
+          stage.children[i].htmlElement.remove();
         }
+
+        createjs.Ticker.off('tick', tick);
+        window.onresize = null;
+
         stage.removeAllChildren();
         stage.enableMouseOver(-1);
         stage.enableDOMEvents(false);
@@ -412,8 +426,8 @@ export default function BoardCanvas() {
         stage.canvas = null;
       }
     };
-  }, [stage]);
-
+  }, [loadSuccess]);
+  console.log('rerender');
   return (
     <>
       <div
