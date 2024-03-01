@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 type Props = {
@@ -57,7 +56,7 @@ export default function CustomModal({
               placeholder=""
               type="text"
               name="title"
-              value={titleContent}
+              defaultValue={titleContent}
             />
             {/* </div> */}
           </Form.Group>
@@ -68,7 +67,7 @@ export default function CustomModal({
                 as="textarea"
                 name="body"
                 className="form-control"
-                value={bodyContent}
+                defaultValue={bodyContent}
               />
             </Form.Group>
           )}

@@ -59,6 +59,8 @@ export default function Board({
     setShowBody(true);
   }
 
+
+
   async function handleDeleteBoardClicked(event) {
     try {
       if (isLoading) return;

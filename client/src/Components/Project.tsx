@@ -76,7 +76,6 @@ export default function Project({
 
   function handleEditProjectClicked(event) {
     setIsModalOpen(true);
-    console.log('targetId', targetId);
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');

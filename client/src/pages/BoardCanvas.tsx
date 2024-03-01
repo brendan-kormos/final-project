@@ -37,6 +37,7 @@ import {
   getDOMElementByHTMLElement,
   renderInstance,
 } from '../lib/canvas';
+import CustomModal from '../Components/CustomModal';
 
 type ProjectList = ProjectType[];
 // type BoardList =
@@ -50,6 +51,19 @@ export default function BoardCanvas() {
   const navBarRef = useRef(null);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const [boardObjects, setBoardObjects] = useState([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [titlePrompt, setTitlePrompt] = useState('');
+  const [titleContent, setTitleContent] = useState('');
+  const [bodyPrompt, setBodyPrompt] = useState('');
+  const [bodyContent, setBodyContent] = useState('');
+  const [header, setHeader] = useState('');
+
+  function handleModalFormSubmit(title, body) {
+    console.log('submit', title, body);
+  }
+
   useEffect(() => {
     // get projects
     async function get() {
@@ -75,6 +89,7 @@ export default function BoardCanvas() {
           stage,
         };
         if (result) {
+          setBoardObjects(result);
           for (let i = 0; i < result.length; i++) {
             const obj = result[i];
             renderInstance(essentialsObj, obj);
@@ -179,6 +194,12 @@ export default function BoardCanvas() {
               (cursorX != mouseDownStartX || cursorY != mouseDownStartY)
             ) {
               onButtonUndrag(event);
+            } else if (
+              mouseDownOnButton &&
+              cursorX === mouseDownStartX &&
+              cursorY === mouseDownStartY
+            ) {
+              onButtonClick(event);
             }
 
             mouseDownOnCanvas = false;
@@ -281,6 +302,20 @@ export default function BoardCanvas() {
             scrollStageY = stage.y;
           }
 
+          function onButtonClick(event) {
+            const button: createjs.DOMElement = mouseDownOnButton;
+            const $button = button.htmlElement;
+            const boardObject = boardObjects.find(
+              (value) => {console.log('value', value)
+              return value.boardObjectId === button.boardObjectId}
+            );
+            console.log(boardObject)
+            setIsModalOpen(true);
+            setHeader('Manage Idea');
+            setTitlePrompt('Edit Title');
+            setBodyPrompt('Edit Body');
+          }
+
           function onButtonDrag(event) {
             const button: createjs.DOMElement = mouseDownOnButton;
             const $button = button.htmlElement;
@@ -311,6 +346,7 @@ export default function BoardCanvas() {
             };
             try {
               const result = await requestCreateButton(boardId, data);
+              setBoardObjects((obj) => [...obj, ...result]);
               for (let i = 0; i < result.length; i++) {
                 renderInstance(essentialsObj, result[i]);
               }
@@ -342,6 +378,7 @@ export default function BoardCanvas() {
 
           return () => {
             //cleanup
+            stage.removeAllChildren();
             $container.removeEventListener('mousedown', onMouseDown);
             $container.removeEventListener('mouseup', onMouseUp);
             $html.removeEventListener('mouseout', onMouseOut); // unclick mouse if out of canvas
@@ -358,6 +395,10 @@ export default function BoardCanvas() {
     get();
   }, [user]);
 
+  useEffect(() => {
+    console.log('boardObjects', boardObjects);
+  }, [boardObjects]);
+
   return (
     <>
       <div
@@ -373,7 +414,17 @@ export default function BoardCanvas() {
             height: '100%',
           }}></canvas>
       </div>
-
+      <CustomModal
+        onClose={() => setIsModalOpen(false)}
+        showBody={true}
+        titlePrompt={titlePrompt}
+        titleContent={titleContent}
+        bodyContent={bodyContent}
+        bodyPrompt={bodyPrompt}
+        header={header}
+        onSubmit={handleModalFormSubmit}
+        isOpen={isModalOpen}
+      />
       <NavBar ref={navBarRef} />
     </>
   );
