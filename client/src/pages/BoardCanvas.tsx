@@ -36,6 +36,7 @@ import { Navbar } from 'react-bootstrap';
 import {
   BoardObjectData,
   getDOMElementByHTMLElement,
+  getDOMElementIndexByBoardObjectId,
   renderInstance,
 } from '../lib/canvas';
 import CustomModal from '../Components/CustomModal';
@@ -101,25 +102,40 @@ export default function BoardCanvas() {
   }>();
 
   async function handleModalFormSubmit(title, content) {
-    console.log('submit', title, content);
-
     const { boardObject, domElement } = editing;
     const { boardId, boardObjectId } = boardObject;
-    const newBoardObject: BoardObjectData = {boardId, boardObjectId}
-    console.log(newBoardObject);
+    const newBoardObject: BoardObjectData = { boardId, boardObjectId };
     //if nothing changed return
     if (title === boardObject.title && content === boardObject.content) return;
     if (title != boardObject.title) newBoardObject.title = title;
     if (content != boardObject.content) newBoardObject.content = content;
     try {
       const result = await requestEditObject(newBoardObject);
-      console.log('result', result)
+      // const stageIndex = getDOMElementIndexByBoardObjectId(boardObjectId);
+
+      setBoardObjects((objs) => {
+        return objs.map((obj) => {
+          if (obj.boardObjectId === boardObject.boardObjectId) {
+            return result;
+          } else return obj;
+        });
+      });
+      (domElement as createjs.DOMElement).htmlElement.firstChild.textContent =
+        result.title;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 
-  // useEffect(() => {}, []);
+  function disableContextMenu() {
+    document.oncontextmenu = function () {
+      return false;
+    };
+  }
+  useEffect(() => {
+    if (editing) setTimeout(()=>document.oncontextmenu = null, 0);
+    else disableContextMenu();
+  }, [editing]);
 
   useEffect(() => {
     // get projects
@@ -156,10 +172,6 @@ export default function BoardCanvas() {
     return [event.clientX - x, event.clientY - y]; // x and y screen position relative to canvas.
   }
 
-  document.oncontextmenu = function () {
-    return false;
-  };
-
   function onButtonClick(event) {
     const button: createjs.DOMElement = mouseDownOnButton;
     const $button = button.htmlElement;
@@ -192,7 +204,7 @@ export default function BoardCanvas() {
     try {
       const result = await requestEditObject(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
   async function onCanvasClicked(event) {
@@ -221,8 +233,10 @@ export default function BoardCanvas() {
     const { x, y } = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
     localCursorX = x;
     localCursorY = y;
-    if ($target.id === 'board-canvas') onCanvasClicked(event);
-    if (mouseDownOnButton) onButtonClick(event);
+    const mouseButton1Click = leftMouseDown && !rightMouseDown
+    const mouseButton2Click = rightMouseDown && !leftMouseDown
+    if (mouseButton1Click && $target.id === 'board-canvas') onCanvasClicked(event);
+    if (mouseButton1Click && mouseDownOnButton) onButtonClick(event);
 
     prevLocalCursorX = localCursorX;
     prevLocalCursorY = localCursorY;
@@ -246,7 +260,6 @@ export default function BoardCanvas() {
     if ($target.id === 'board-canvas') {
       mouseDownOnCanvas = true;
     } else if ($button) {
-      console.log('button', $button);
       mouseDownOnButton = getDOMElementByHTMLElement(stage, $button);
       buttonMouseOffsetX = prevLocalCursorX - mouseDownOnButton.x;
       buttonMouseOffsetY = prevLocalCursorY - mouseDownOnButton.y;
@@ -302,8 +315,7 @@ export default function BoardCanvas() {
 
   function onMouseUp(event) {
     if (!stage) return;
-    leftMouseDown = false;
-    rightMouseDown = false;
+
 
     [cursorX, cursorY] = cursorPos(event);
     if (cursorX === mouseDownStartX && cursorY === mouseDownStartY) {
@@ -322,6 +334,8 @@ export default function BoardCanvas() {
       onButtonUndrag(event);
     }
 
+    leftMouseDown = false;
+    rightMouseDown = false;
     mouseDownOnCanvas = false;
     mouseDownOnButton = null;
     buttonMouseOffsetY = null;
@@ -387,7 +401,6 @@ export default function BoardCanvas() {
     essentialsObj.$container = containerRef.current;
     essentialsObj.$html = document.documentElement;
     essentialsObj.stage = stage;
-
     setStage(stage);
 
     for (let i = 0; i < boardObjects.length; i++) {
@@ -416,7 +429,6 @@ export default function BoardCanvas() {
     };
 
     return () => {
-      console.log('cleanup');
       $html.removeEventListener('mouseout', onMouseOut);
       document.oncontextmenu = null;
       if (stage) {
@@ -435,7 +447,6 @@ export default function BoardCanvas() {
       }
     };
   }, [loadSuccess]);
-  console.log('rerender');
   return (
     <>
       <div
@@ -456,7 +467,10 @@ export default function BoardCanvas() {
           }}></canvas>
       </div>
       <CustomModal
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setEditing(undefined);
+          setIsModalOpen(false);
+        }}
         showBody={true}
         titlePrompt={titlePrompt}
         titleContent={titleContent}

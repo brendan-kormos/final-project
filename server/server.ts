@@ -533,8 +533,8 @@ app.put('/api/board/edit/', authMiddleware, async (req, res, next) => {
       title,
       content,
     ]);
-    const insertValue = insertResults.rows;
-    console.log('insert results', insertValue);
+    const insertValue = insertResults.rows[0];
+    // console.log('insert results', insertValue[0]);
     res.status(201).json(insertValue);
   } catch (err) {
     next(err);

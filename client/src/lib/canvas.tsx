@@ -39,9 +39,16 @@ export function getDOMElementByHTMLElement(
   $element: Element
 ) {
   return stage.children.find((value, index) => {
-    if (value.htmlElement === $element){
-      return $element
-    }
+    return value.htmlElement === $element;
+  });
+}
+
+export function getDOMElementIndexByBoardObjectId(
+  stage: createjs.Stage,
+  $element: Element
+) {
+  return stage.children.findIndex((value, index) => {
+    return value.htmlElement === $element;
   });
 }
 
@@ -84,9 +91,10 @@ export function renderInstance(essentials: Essentials, data: BoardObjectData) {
   $container.prepend($element);
 
   const domElement = new createjs.DOMElement($element);
-  stage.addChild(domElement)
+  stage.addChild(domElement);
   domElement.parent = stage;
-  domElement.boardObjectId = data.boardObjectId
+  domElement.boardObjectId = data.boardObjectId;
   domElement.x = data.anchorMiddle ? data.x - width / 2 : data.x;
   domElement.y = data.anchorMiddle ? data.y - height / 2 : data.y;
+
 }
