@@ -32,7 +32,12 @@ import {
 import { useRouter } from 'next/router';
 import { useLocation, useParams } from 'react-router-dom';
 import { findDOMNode, render } from 'react-dom';
-import { Navbar } from 'react-bootstrap';
+import {
+  Dropdown,
+  Navbar,
+  DropdownButton,
+  DropdownItem,
+} from 'react-bootstrap';
 import {
   BoardObjectData,
   getDOMElementByHTMLElement,
@@ -78,6 +83,8 @@ const essentialsObj = {
   // stage,
 };
 
+const contextMenuItems = [];
+
 export default function BoardCanvas() {
   const { user } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,10 +103,24 @@ export default function BoardCanvas() {
   const [bodyContent, setBodyContent] = useState('');
   const [header, setHeader] = useState('');
   const [stage, setStage] = useState<createjs.Stage | null>(null);
-  const [editing, setEditing] = useState<{
-    domElement: createjs.DOMElement;
-    boardObject;
-  }>();
+  const [editing, setEditing] = useState(false);
+
+  const [selectedObject, setSelectedObject] = useState<createjs.Stage | null>(
+    null
+  );
+  // const [editing, setEditing] = useState<{
+  //   domElement: createjs.DOMElement;
+  //   boardObject;
+  // }>();
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuItems, setContextMenuItems] = useState([]);
+  const [contextMenuPos, setContextMenuPos] = useState<{
+    x: number;
+    y: number;
+  }>({ x: 0, y: 0 });
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(true);
+  // const dropdownMenu = useRef(null);
+  // const [dropdownItems, setDropdownItems] = useState();
 
   async function handleModalFormSubmit(title, content) {
     const { boardObject, domElement } = editing;
@@ -127,15 +148,12 @@ export default function BoardCanvas() {
     }
   }
 
-  function disableContextMenu() {
-    document.oncontextmenu = function () {
-      return false;
-    };
-  }
   useEffect(() => {
-    if (editing) setTimeout(()=>document.oncontextmenu = null, 0);
-    else disableContextMenu();
-  }, [editing]);
+    // if (editing) setTimeout(() => (containerRef.current.oncontextmenu = null), 0);
+    //  containerRef.current.oncontextmenu = function () {
+    //    return false;
+    //  };
+  }, []);
 
   useEffect(() => {
     // get projects
@@ -179,7 +197,8 @@ export default function BoardCanvas() {
       return value.boardObjectId === button.boardObjectId;
     });
     setIsModalOpen(true);
-    setEditing({ domElement: button, boardObject });
+    setSelectedObject({ domElement: button, boardObject });
+    setEditing(true);
     setHeader('Manage Idea');
     setTitleContent(boardObject.title);
     setTitlePrompt('Edit Title');
@@ -207,7 +226,8 @@ export default function BoardCanvas() {
       console.error(error);
     }
   }
-  async function onCanvasClicked(event) {
+
+  async function handleCreateButton() {
     const data = {
       x: gridLocked(localCursorX),
       y: gridLocked(localCursorY),
@@ -225,18 +245,27 @@ export default function BoardCanvas() {
       console.error(error);
     }
   }
+  function onCanvasClicked(event) {}
+
+  function onCanvasRightClicked(event) {
+    // contextMenuItems.splice(0, contextMenuItems.length, ...['test1', 'test222']);
+    setContextMenuItems(['Create Idea']);
+  }
 
   function onMouseClick(event) {
     const $target = event.target;
     const [cursorX, cursorY] = cursorPos(event);
-
     const { x, y } = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
     localCursorX = x;
     localCursorY = y;
-    const mouseButton1Click = leftMouseDown && !rightMouseDown
-    const mouseButton2Click = rightMouseDown && !leftMouseDown
-    if (mouseButton1Click && $target.id === 'board-canvas') onCanvasClicked(event);
-    if (mouseButton1Click && mouseDownOnButton) onButtonClick(event);
+    const mouseButton1Click = leftMouseDown && !rightMouseDown;
+    const mouseButton2Click = rightMouseDown && !leftMouseDown;
+    if (mouseButton1Click) {
+      if ($target.id === 'board-canvas') onCanvasClicked(event);
+      if (mouseDownOnButton) onButtonClick(event);
+    } else if (mouseButton2Click) {
+      if ($target.id === 'board-canvas') onCanvasRightClicked(event);
+    }
 
     prevLocalCursorX = localCursorX;
     prevLocalCursorY = localCursorY;
@@ -256,6 +285,12 @@ export default function BoardCanvas() {
       rightMouseDown = true;
       leftMouseDown = false;
     }
+
+    const $dropdownMenu = $target.closest('.dropdown-menu');
+    if (!$dropdownMenu) {
+      setShowContextMenu(false);
+    }
+
     const $button = $target?.closest('.canvas-button');
     if ($target.id === 'board-canvas') {
       mouseDownOnCanvas = true;
@@ -264,6 +299,7 @@ export default function BoardCanvas() {
       buttonMouseOffsetX = prevLocalCursorX - mouseDownOnButton.x;
       buttonMouseOffsetY = prevLocalCursorY - mouseDownOnButton.y;
     }
+
     const [cursorX, cursorY] = cursorPos(event);
     mouseDownStartX = cursorX;
     mouseDownStartY = cursorY;
@@ -316,10 +352,9 @@ export default function BoardCanvas() {
   function onMouseUp(event) {
     if (!stage) return;
 
-
     [cursorX, cursorY] = cursorPos(event);
     if (cursorX === mouseDownStartX && cursorY === mouseDownStartY) {
-      //mouseclick with no movement
+      // mouseclick with no movement
       onMouseClick(event);
     }
     const localObj = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
@@ -430,7 +465,6 @@ export default function BoardCanvas() {
 
     return () => {
       $html.removeEventListener('mouseout', onMouseOut);
-      document.oncontextmenu = null;
       if (stage) {
         for (let i = 0; i < stage.children.length; i++) {
           stage.children[i].htmlElement.remove();
@@ -447,9 +481,29 @@ export default function BoardCanvas() {
       }
     };
   }, [loadSuccess]);
+
+  function handleSelectedItem(item) {
+    setShowContextMenu(false)
+    switch(item){
+      case "Create Idea":
+      try{
+        handleCreateButton()
+      }catch(error){
+        console.error(error)
+      }
+      break;
+    }
+  }
+
   return (
     <>
       <div
+        onContextMenu={(event) => {
+          setShowContextMenu(true);
+          const [x, y] = cursorPos(event);
+          setContextMenuPos({ x, y });
+          event.preventDefault();
+        }}
         onMouseMove={onMouseMove}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
@@ -468,7 +522,8 @@ export default function BoardCanvas() {
       </div>
       <CustomModal
         onClose={() => {
-          setEditing(undefined);
+          setEditing(false);
+          setSelectedObject(null);
           setIsModalOpen(false);
         }}
         showBody={true}
@@ -480,6 +535,19 @@ export default function BoardCanvas() {
         onSubmit={handleModalFormSubmit}
         isOpen={isModalOpen}
       />
+
+      {showContextMenu ? (
+        <Dropdown onSelect={handleSelectedItem} show>
+          <Dropdown.Menu
+            style={{ left: contextMenuPos.x, top: contextMenuPos.y }}>
+            {contextMenuItems &&
+              contextMenuItems.map((value) => {
+                return <Dropdown.Item eventKey={value}>{value}</Dropdown.Item>;
+              })}
+          </Dropdown.Menu>
+        </Dropdown>
+      ) : null}
+
       <NavBar ref={navBarRef} />
     </>
   );
