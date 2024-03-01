@@ -141,20 +141,8 @@ export default function BoardCanvas() {
           createjs.Ticker.on('tick', tick);
           createjs.Ticker.framerate = 60;
 
-          // $container.addEventListener('mousedown', onMouseDown);
-          // $container.addEventListener('mouseup', onMouseUp, false);
-          // $html.addEventListener('mouseout', onMouseOut, false); // unclick mouse if out of canvas
-          // $container.addEventListener('mousemove', onMouseMove, false);
-          // $container.addEventListener('wheel', onMouseWheel, false);
-
           return () => {
-            //cleanup
-            // stage.removeAllChildren();
-            // $container.removeEventListener('mousedown', onMouseDown);
-            // $container.removeEventListener('mouseup', onMouseUp);
-            // $html.removeEventListener('mouseout', onMouseOut); // unclick mouse if out of canvas
-            // $container.removeEventListener('mousemove', onMouseMove);
-            // $container.removeEventListener('wheel', onMouseWheel);
+            createjs.Ticker.off('tick', tick)
           };
         }
       } catch (err) {
@@ -174,7 +162,6 @@ export default function BoardCanvas() {
     const $container: Element = containerRef.current;
     if (!$container) throw new Error('container does not exist');
     const { x, y } = $container.getBoundingClientRect(); //event.target is canvas
-    console.log('x', event.x, 'y', y);
     return [event.clientX - x, event.clientY - y]; // x and y screen position relative to canvas.
   }
 
@@ -240,8 +227,8 @@ export default function BoardCanvas() {
     const { x, y } = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
     localCursorX = x;
     localCursorY = y;
-
     if ($target.id === 'board-canvas') onCanvasClicked(event);
+    if (mouseDownOnButton) onButtonClick(event);
 
     prevLocalCursorX = localCursorX;
     prevLocalCursorY = localCursorY;
@@ -320,6 +307,7 @@ export default function BoardCanvas() {
   }
 
   function onMouseUp(event) {
+    if (!stage) return;
     leftMouseDown = false;
     rightMouseDown = false;
 
@@ -343,7 +331,6 @@ export default function BoardCanvas() {
       cursorX === mouseDownStartX &&
       cursorY === mouseDownStartY
     ) {
-      onButtonClick(event);
     }
 
     mouseDownOnCanvas = false;
@@ -354,7 +341,7 @@ export default function BoardCanvas() {
 
   let foundNan = false;
   function onMouseMove(event) {
-    console.log('event', event);
+    if (!stage) return;
     const $target = event.target;
     // get mouse position
     const [cursorX, cursorY] = cursorPos(event);
@@ -413,8 +400,19 @@ export default function BoardCanvas() {
     $html.addEventListener('mouseout', onMouseOut, false); // unclick mouse if out of canvas
     return () => {
       $html.removeEventListener('mouseout', onMouseOut);
+      document.oncontextmenu = null;
+      if (stage) {
+        for (let i=0;i<stage.children.length;i++){
+          stage.children[i].htmlElement.remove()
+        }
+        stage.removeAllChildren();
+        stage.enableMouseOver(-1);
+        stage.enableDOMEvents(false);
+        stage.removeAllEventListeners();
+        stage.canvas = null;
+      }
     };
-  }, []);
+  }, [stage]);
 
   return (
     <>
