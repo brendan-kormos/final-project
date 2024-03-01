@@ -100,12 +100,20 @@ export default function BoardCanvas() {
     boardObject;
   }>();
 
-  async function handleModalFormSubmit(title, body) {
-    console.log('submit', title, body);
+  async function handleModalFormSubmit(title, content) {
+    console.log('submit', title, content);
 
     const { boardObject, domElement } = editing;
-    console.log(boardObject, domElement);
+    const { boardId, boardObjectId } = boardObject;
+    const newBoardObject: BoardObjectData = {boardId, boardObjectId}
+    console.log(newBoardObject);
+    //if nothing changed return
+    if (title === boardObject.title && content === boardObject.content) return;
+    if (title != boardObject.title) newBoardObject.title = title;
+    if (content != boardObject.content) newBoardObject.content = content;
     try {
+      const result = await requestEditObject(newBoardObject);
+      console.log('result', result)
     } catch (error) {
       console.log(error);
     }
