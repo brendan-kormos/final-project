@@ -20,7 +20,6 @@ export type Project = {
 
 
 export async function getBoardObjects(boardId:number): Promise<Project[]> {
-  console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'GET',
     headers: {
@@ -36,7 +35,6 @@ export async function getBoardObjects(boardId:number): Promise<Project[]> {
 
 
 export async function createGenericBoardObject(boardId: number): Promise<Project[]> {
-  console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'POST',
     headers: {
@@ -54,7 +52,6 @@ export async function requestCreateButton(
   boardId: number,
   data:BoardObjectData
 ): Promise<BoardObjectData[]> {
-  console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'POST',
     headers: {
@@ -72,7 +69,6 @@ export async function requestCreateButton(
 export async function requestEditObject(
   data: BoardObjectData
 ): Promise<BoardObjectData[]> {
-  console.log('token', sessionStorage.getItem('token'));
   const req = {
     method: 'PUT',
     headers: {
