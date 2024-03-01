@@ -205,6 +205,9 @@ export default function BoardCanvas() {
     setBodyPrompt('Edit Body');
     setBodyContent(boardObject.content);
   }
+  function onButtonRightClick(event) {
+    console.log('button right click');
+  }
 
   function onButtonDrag(event) {
     const button: createjs.DOMElement = mouseDownOnButton;
@@ -249,7 +252,7 @@ export default function BoardCanvas() {
 
   function onCanvasRightClicked(event) {
     // contextMenuItems.splice(0, contextMenuItems.length, ...['test1', 'test222']);
-    setContextMenuItems(['Create Idea']);
+    console.log('canvas right click');
   }
 
   function onMouseClick(event) {
@@ -265,6 +268,7 @@ export default function BoardCanvas() {
       if (mouseDownOnButton) onButtonClick(event);
     } else if (mouseButton2Click) {
       if ($target.id === 'board-canvas') onCanvasRightClicked(event);
+      if (mouseDownOnButton) onButtonRightClick(event);
     }
 
     prevLocalCursorX = localCursorX;
@@ -483,15 +487,15 @@ export default function BoardCanvas() {
   }, [loadSuccess]);
 
   function handleSelectedItem(item) {
-    setShowContextMenu(false)
-    switch(item){
-      case "Create Idea":
-      try{
-        handleCreateButton()
-      }catch(error){
-        console.error(error)
-      }
-      break;
+    setShowContextMenu(false);
+    switch (item) {
+      case 'Create Idea':
+        try {
+          handleCreateButton();
+        } catch (error) {
+          console.error(error);
+        }
+        break;
     }
   }
 
@@ -499,10 +503,18 @@ export default function BoardCanvas() {
     <>
       <div
         onContextMenu={(event) => {
+          event.preventDefault();
+          const $target = event.target;
+          console.log(event);
           setShowContextMenu(true);
           const [x, y] = cursorPos(event);
           setContextMenuPos({ x, y });
-          event.preventDefault();
+          const $canvas = $target.id === 'board-canvas';
+          const $button = $target?.closest('.canvas-button');
+          if ($canvas) setContextMenuItems(['Create Idea']);
+          else if ($button) setContextMenuItems(['__divider', 'Delete Idea']);
+
+          console.log('onCanvas', onCanvas);
         }}
         onMouseMove={onMouseMove}
         onMouseDown={onMouseDown}
@@ -541,8 +553,21 @@ export default function BoardCanvas() {
           <Dropdown.Menu
             style={{ left: contextMenuPos.x, top: contextMenuPos.y }}>
             {contextMenuItems &&
-              contextMenuItems.map((value) => {
-                return <Dropdown.Item eventKey={value}>{value}</Dropdown.Item>;
+              contextMenuItems.map((value: string) => {
+                let classNames = 'btn btn-dark';
+                switch (value) {
+                  case '__divider':
+                    return <Dropdown.Divider></Dropdown.Divider>;
+                  default:
+                    if (value.toLowerCase().includes('delete')) {
+                      classNames = 'btn btn-danger';
+                    }
+                    return (
+                      <Dropdown.Item className={classNames} eventKey={value}>
+                        {value}
+                      </Dropdown.Item>
+                    );
+                }
               })}
           </Dropdown.Menu>
         </Dropdown>
