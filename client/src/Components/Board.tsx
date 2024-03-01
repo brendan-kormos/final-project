@@ -4,6 +4,7 @@ import ModalTitleBodyEdit from './CustomModal';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { deleteBoard, editBoard } from '../lib';
+import CustomModal from './CustomModal';
 
 type Props = {
   projectId: number;
@@ -27,6 +28,7 @@ export default function Board({
   const [bodyPrompt, setBodyPrompt] = useState('a');
   const [action, setAction] = useState('');
   const [showBody, setShowBody] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   async function handleModalFormSubmit(title, body) {
     try {
@@ -38,7 +40,7 @@ export default function Board({
         console.log('body', body);
         const result = await editBoard(boardId, title, body);
         console.log('edit project', result);
-        navigate(0)
+        navigate(0);
         // onNewProject(result);
       }
     } catch (err) {
@@ -49,6 +51,7 @@ export default function Board({
   }
 
   function handleEditBoardClicked(event) {
+    setIsModalOpen(true)
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
@@ -71,8 +74,6 @@ export default function Board({
     }
   }
 
-  const targetId = `#modal-menu${boardId}`;
-  const targetIdNoTag = `modal-menu${boardId}`;
 
   // console.log('board projectId', projectId)
   return (
@@ -87,7 +88,7 @@ export default function Board({
         />
         <div className="card-body ps-5">
           <Link
-            to={"/board/"+boardId}
+            to={'/board/' + boardId}
             className="btn p-0 text-start bg-transparent ">
             <h5 className="card-title text-start h5">{title}</h5>
           </Link>
@@ -107,8 +108,6 @@ export default function Board({
         <ul className="dropdown-menu">
           <li>
             <button
-              data-bs-toggle="modal"
-              data-bs-target={targetId}
               onClick={handleEditBoardClicked}
               className="dropdown-item btn btn-dark ">
               Edit Board
@@ -125,14 +124,23 @@ export default function Board({
             </button>
           </li>
         </ul>
-        <ModalTitleBodyEdit
+
+        <CustomModal
+          onClose={() => setIsModalOpen(false)}
           showBody={showBody}
           titlePrompt={titlePrompt}
           bodyPrompt={bodyPrompt}
           header={header}
           onSubmit={handleModalFormSubmit}
-          targetName={targetIdNoTag}
+          isOpen={isModalOpen}
         />
+        {/* <CustomModal
+          showBody={showBody}
+          titlePrompt={titlePrompt}
+          bodyPrompt={bodyPrompt}
+          header={header}
+          onSubmit={handleModalFormSubmit}
+        /> */}
       </div>
     </>
   );

@@ -168,7 +168,6 @@ export default function Project({
           </ul>
         </div>
       </div>
-      <div id="test div">test div</div>
       <CustomModal
         onClose={() => setIsModalOpen(false)}
         showBody={showBody}
