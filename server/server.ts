@@ -219,8 +219,10 @@ app.post(
 
 app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
   try {
+
     const { projectId } = req.params;
     const { title, body } = req.body;
+    console.log('create a board')
     if (!projectId || !Number(projectId) || isNaN(projectId)) {
       throw new ClientError(400, 'no projectId was provided');
     }
@@ -253,7 +255,7 @@ app.put(
   authMiddleware,
   async (req, res, next) => {
     try {
-      console.log('gor req for create board');
+      console.log('gor req for edit project');
       const { projectId, title } = req.params;
       if (!projectId || !Number(projectId) || isNaN(projectId)) {
         throw new ClientError(400, 'no projectId was provided');
@@ -265,16 +267,23 @@ app.put(
       if (!req.user) {
         throw new ClientError(401, 'not logged in');
       }
+
+      {
+        const sql = 2;
+      }
       const sql = `
         update "projects"
         set "title" = $2
-        where "projectId" = $1
+        where "projectId" = $1 and "ownerId" = $3
         returning "projectId", "title", "ownerId"
     `;
 
-      const result = await db.query<Project>(sql, [projectId, title]);
+      const result = await db.query<Project>(sql, [
+        projectId,
+        title,
+        req.user.userId,
+      ]);
       const val = result.rows[0];
-      console.log('val', val);
 
       res.status(201).json(val);
     } catch (err) {
@@ -290,7 +299,6 @@ app.delete(
   authMiddleware,
   async (req, res, next) => {
     try {
-      console.log('made it to server');
       const { projectId } = req.params;
       if (!projectId || !Number(projectId) || isNaN(projectId)) {
         throw new ClientError(400, 'no projectId was provided');
@@ -316,7 +324,6 @@ app.delete(
 
       const result = await db.query<Project>(sql, [projectId]);
       const val = result.rows[0];
-      console.log('val', val);
 
       res.status(201).json(val);
     } catch (err) {
@@ -324,7 +331,6 @@ app.delete(
     }
   }
 );
-
 
 //delete board
 
@@ -364,8 +370,8 @@ app.put(
   async (req, res, next) => {
     try {
       const { boardId, title } = req.params;
-      const { body } = req.body
-
+      const { body } = req.body;
+      console.log('made it to board edit', boardId)
       if (!boardId || !Number(boardId) || isNaN(boardId)) {
         throw new ClientError(400, 'no projectId was provided');
       }
@@ -387,6 +393,198 @@ app.put(
       const val = result.rows[0];
 
       res.status(201).json(val);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//get board objects
+app.get('/api/board/:boardId', authMiddleware, async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const { boardId } = req.params;
+    console.log('board Id', boardId);
+    // const boardsSql = `
+    //   SELECT
+    //     boardObjects."boardId",
+    //     boardObjects."boardObjectId",
+    //     boardObjects."x",
+    //     boardObjects."y",
+    //     boardObjects."type",
+    //     boardObjects."content",
+    //     boardObjects."createdAt"
+
+    //   FROM
+    //    boardObjects
+    //   JOIN
+    //     boards ON boards."boardId" = boardObjects."boardId"
+    //     projects ON board."projectId" = projects."projectId" and projects."ownerId" = $1
+    //   WHERE
+    //     projects."ownerId" = $1 and boardObjects."boardId" = $2
+    // `;
+    const boardObjectsSql = `
+    SELECT bo.*
+      FROM "boardObjects" bo
+      JOIN "boards" b ON bo."boardId" = b."boardId"
+      JOIN "projects" p ON b."projectId" = p."projectId"
+      WHERE bo."boardId" = $2
+      AND p."ownerId" = $1`;
+
+    const boardsResult = await db.query<Project>(boardObjectsSql, [
+      req.user.userId,
+      boardId,
+    ]);
+    const boardsVal = boardsResult.rows;
+    console.log('boardObjectsVal', boardsVal);
+    res.status(201).json(boardsVal);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//create generic board object
+app.post(
+  '/api/board/generic/:boardId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const { boardId } = req.params;
+      console.log('create generic', boardId);
+      const boardBelongsSQL = `
+      SELECT *
+      FROM "public"."boards" b
+      JOIN "public"."projects" p ON b."projectId" = p."projectId"
+      WHERE p."ownerId" = $1 and b."boardId" = $2`;
+      const boardBelongsQuery = await db.query(boardBelongsSQL, [
+        req.user.userId,
+        boardId,
+      ]);
+      if (boardBelongsQuery.rows[0] === undefined) {
+        throw new ClientError(401, 'board is not authorized');
+      }
+
+      const insertSql = `
+      insert into "boardObjects" ("boardId", "x", "y", "type", "content")
+      values ($1,
+        '${Math.floor(Math.random() * 800 - 400)}',
+        '${Math.floor(Math.random() * 800 - 400)}',
+        'testType',
+        'testContent')
+        returning *
+      `;
+
+      const insertResults = await db.query(insertSql, [boardId]);
+      const insertValue = insertResults.rows;
+      console.log('insert results', insertValue);
+      res.status(201).json(insertValue);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.put('/api/board/edit/', authMiddleware, async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const { content, x, y, type, title, boardObjectId, boardId } = req.body;
+    const boardBelongsSQL = `
+     SELECT bo.*
+      FROM "public"."boardObjects" bo
+      JOIN "public"."boards" b ON bo."boardId" = b."boardId"
+      JOIN "public"."projects" p ON b."projectId" = p."projectId"
+      WHERE p."ownerId" = $1
+      AND bo."boardId" = $2
+      AND bo."boardObjectId" = $3`;
+    const boardBelongsQuery = await db.query(boardBelongsSQL, [
+      req.user.userId,
+      boardId,
+      boardObjectId
+    ]);
+    if (boardBelongsQuery.rows[0] === undefined) {
+      throw new ClientError(401, 'board is not authorized');
+    }
+
+    const insertSql = `
+      UPDATE "boardObjects"
+      SET
+        "x" = COALESCE($2, "x"),
+        "y" = COALESCE($3, "y"),
+        "type" = COALESCE($4, "type"),
+        "title" = COALESCE($5, "title"),
+        "content" = COALESCE($6, "content")
+      WHERE "boardObjectId" = $1
+      RETURNING *
+`;
+
+    const insertResults = await db.query(insertSql, [
+      boardObjectId,
+      x,
+      y,
+      type,
+      title,
+      content,
+    ]);
+    const insertValue = insertResults.rows[0];
+    // console.log('insert results', insertValue[0]);
+    res.status(201).json(insertValue);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post(
+  '/api/board/create/:boardId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new ClientError(401, 'not logged in');
+      }
+      const { boardId } = req.params;
+      const { content, x, y, type, title } = req.body;
+      const boardBelongsSQL = `
+      SELECT *
+      FROM "public"."boards" b
+      JOIN "public"."projects" p ON b."projectId" = p."projectId"
+      WHERE p."ownerId" = $1 and b."boardId" = $2`;
+      const boardBelongsQuery = await db.query(boardBelongsSQL, [
+        req.user.userId,
+        boardId,
+      ]);
+      if (boardBelongsQuery.rows[0] === undefined) {
+        throw new ClientError(401, 'board is not authorized');
+      }
+
+      const insertSql = `
+      insert into "boardObjects" ("boardId", "x", "y", "type", "title", "content")
+      values ($1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6)
+        returning *
+      `;
+
+      const insertResults = await db.query(insertSql, [
+        boardId,
+        x,
+        y,
+        type,
+        title,
+        content,
+      ]);
+      const insertValue = insertResults.rows;
+      res.status(201).json(insertValue);
     } catch (err) {
       next(err);
     }

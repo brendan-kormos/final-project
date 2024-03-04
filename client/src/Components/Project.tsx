@@ -1,8 +1,8 @@
 import { Navbar } from 'react-bootstrap';
 import Board from './Board';
 import * as Icon from 'react-bootstrap-icons';
-import ModalTitleBodyEdit from './ModalTitleBodyEdit';
-import { useState } from 'react';
+import CustomModal from './CustomModal';
+import { useEffect, useState } from 'react';
 import { createBoard, createProject, deleteProject, editProject } from '../lib';
 import { useNavigate } from 'react-router-dom';
 type Props = {
@@ -26,16 +26,17 @@ export default function Project({
   const [bodyPrompt, setBodyPrompt] = useState('a');
   const [action, setAction] = useState('');
   const [showBody, setShowBody] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   async function handleModalFormSubmit(title, body) {
     console.log(projectId, title, body);
     console.log('action', action);
     try {
-      if (isLoading) return
+      if (isLoading) return;
       setIsLoading(true);
       if (action === 'create-project') {
-        console.log('create!')
+        console.log('create!');
         const result = await createBoard({
           projectId,
           title,
@@ -46,7 +47,7 @@ export default function Project({
         console.log('edit project pre');
         const result = await editProject(projectId, title);
         console.log('edit project', result);
-        navigate(0)
+        navigate(0);
         // onNewProject(result);
       }
     } catch (err) {
@@ -56,10 +57,16 @@ export default function Project({
     }
   }
 
-  const targetId = `#modal-menu${projectId}`
+  const targetId = `#modal-menu${projectId}`;
   const targetIdNoTag = `modal-menu${projectId}`;
 
-  function handleNewProjectClicked(event) {
+  useEffect(() => {
+    console.log('header', header);
+  }, [header]);
+
+  function handleNewBoardClicked(event) {
+    console.log('new board clicked', projectId);
+    setIsModalOpen(true);
     setHeader('Create a new board');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
@@ -68,6 +75,7 @@ export default function Project({
   }
 
   function handleEditProjectClicked(event) {
+    setIsModalOpen(true);
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
     setBodyPrompt('Set a description');
@@ -80,7 +88,7 @@ export default function Project({
       if (isLoading) return;
       setIsLoading(true);
       console.log('delete  pre');
-      console.log('projectId', projectId)
+      console.log('projectId', projectId);
       const result = await deleteProject(projectId);
       console.log('delete post', result);
       navigate(0);
@@ -128,12 +136,11 @@ export default function Project({
             data-bs-toggle="dropdown">
             <Icon.ThreeDots color={'black'} size={16} />
           </button>
+
           <ul className="dropdown-menu">
             <li>
               <button
-                data-bs-toggle="modal"
-                data-bs-target={targetId}
-                onClick={handleNewProjectClicked}
+                onClick={handleNewBoardClicked}
                 className="dropdown-item btn btn-dark">
                 New Board
               </button>
@@ -160,13 +167,14 @@ export default function Project({
           </ul>
         </div>
       </div>
-      <ModalTitleBodyEdit
+      <CustomModal
+        onClose={() => setIsModalOpen(false)}
         showBody={showBody}
         titlePrompt={titlePrompt}
         bodyPrompt={bodyPrompt}
         header={header}
         onSubmit={handleModalFormSubmit}
-        targetName={targetIdNoTag}
+        isOpen={isModalOpen}
       />
     </>
   );
