@@ -37,6 +37,7 @@ const db = new pg.Pool({
     rejectUnauthorized: false,
   },
 });
+console.log('connection string', connectionString);
 
 const hashKey = process.env.TOKEN_SECRET;
 if (!hashKey) throw new Error('TOKEN_SECRET not found in .env');
@@ -160,7 +161,7 @@ app.get('/api/projects', authMiddleware, async (req, res, next) => {
   }
 });
 
-//get project
+// get project
 
 app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
   try {
@@ -219,10 +220,9 @@ app.post(
 
 app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
   try {
-
     const { projectId } = req.params;
     const { title, body } = req.body;
-    console.log('create a board')
+    console.log('create a board');
     if (!projectId || !Number(projectId) || isNaN(projectId)) {
       throw new ClientError(400, 'no projectId was provided');
     }
@@ -248,7 +248,7 @@ app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
   }
 });
 
-//edit a project
+// edit a project
 
 app.put(
   '/api/project/:projectId/:title',
@@ -292,7 +292,7 @@ app.put(
   }
 );
 
-//delete a project
+// delete a project
 
 app.delete(
   '/api/project/:projectId',
@@ -332,7 +332,7 @@ app.delete(
   }
 );
 
-//delete board
+// delete board
 
 app.delete('/api/board/:boardId', authMiddleware, async (req, res, next) => {
   try {
@@ -362,7 +362,7 @@ app.delete('/api/board/:boardId', authMiddleware, async (req, res, next) => {
   }
 });
 
-//edit a board
+// edit a board
 
 app.put(
   '/api/board/:boardId/:title',
@@ -371,7 +371,7 @@ app.put(
     try {
       const { boardId, title } = req.params;
       const { body } = req.body;
-      console.log('made it to board edit', boardId)
+      console.log('made it to board edit', boardId);
       if (!boardId || !Number(boardId) || isNaN(boardId)) {
         throw new ClientError(400, 'no projectId was provided');
       }
@@ -399,7 +399,7 @@ app.put(
   }
 );
 
-//get board objects
+// get board objects
 app.get('/api/board/:boardId', authMiddleware, async (req, res, next) => {
   try {
     if (!req.user) {
@@ -445,7 +445,7 @@ app.get('/api/board/:boardId', authMiddleware, async (req, res, next) => {
   }
 });
 
-//create generic board object
+// create generic board object
 app.post(
   '/api/board/generic/:boardId',
   authMiddleware,
@@ -507,7 +507,7 @@ app.put('/api/board/edit/', authMiddleware, async (req, res, next) => {
     const boardBelongsQuery = await db.query(boardBelongsSQL, [
       req.user.userId,
       boardId,
-      boardObjectId
+      boardObjectId,
     ]);
     if (boardBelongsQuery.rows[0] === undefined) {
       throw new ClientError(401, 'board is not authorized');
