@@ -1,18 +1,15 @@
 import { useNavigate, Route, Routes } from 'react-router-dom';
-import { useState, useEffect, Context, createContext } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 import { AppContext } from './Components/AppContext';
 
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import BoardCanvas from './pages/BoardCanvas'
-import NavBar from './Components/Navbar';
-import React from 'react';
+import BoardCanvas from './pages/BoardCanvas';
 
 import { Auth, User } from './lib';
 import Projects from './pages/Projects';
-import { tokenKey } from './lib';
 
 export default function App() {
   const [user, setUser] = useState<User>();
@@ -52,7 +49,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.add('data-bs-theme', 'dark', 'h-100'); //<html>
     document.body.classList.add('bg-body-tertiary', 'h-100');
-    document.body.querySelector('#root').classList.add('h-100');
+    document?.body?.querySelector('#root')?.classList.add('h-100');
   }, []);
 
   if (isAuthorizing) return null;

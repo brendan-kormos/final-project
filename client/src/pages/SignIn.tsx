@@ -1,9 +1,9 @@
 import './SignIn.css';
 
-import React, { FormEvent, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { FormEvent, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-import { type Auth, signIn, signUp } from '../lib';
+import { type Auth, signIn } from '../lib';
 
 import {
   FloatingLabel,
@@ -24,9 +24,17 @@ export default function SignIn({ onSignIn }: Props) {
     event.preventDefault();
 
     async function handleSignIn(username: string, password: string) {
-      const auth = await signIn(username, password);
-      if (auth.user && auth.token) {
-        onSignIn(auth);
+      if (isLoading) return;
+      setIsLoading(true);
+      try {
+        const auth = await signIn(username, password);
+        if (auth.user && auth.token) {
+          onSignIn(auth);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
       }
     }
     if (event.currentTarget === null) throw new Error();
@@ -35,8 +43,9 @@ export default function SignIn({ onSignIn }: Props) {
     const { username, password } = entries;
 
     try {
-      const val = await handleSignIn(username as string, password as string);
-    } catch (err) {
+      await handleSignIn(username as string, password as string);
+    } catch (err: any) {
+      console.error(err.message);
       setErrMessage(err.message);
     }
   }

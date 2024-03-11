@@ -26,14 +26,14 @@ export default function CustomModal({
 }: Props) {
   if (!isOpen) return null;
   console.log('modal open');
-  const handleOnSubmit = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.currentTarget === null) throw new Error();
-    const formData = new FormData(event.currentTarget);
-    const { title, body } = Object.fromEntries(formData.entries());
-    onSubmit(title, body);
-  };
+  // const handleOnSubmit = (event) => {
+  //   event.preventDefault();
+  //   event.stopPropagation();
+  //   if (event.currentTarget === null) throw new Error();
+  //   const formData = new FormData(event.currentTarget);
+  //   const { title, body } = Object.fromEntries(formData.entries());
+  //   onSubmit(title, body);
+  // };
   return (
     <Modal centered show={isOpen} onHide={onClose}>
       <Form
@@ -42,7 +42,7 @@ export default function CustomModal({
           if (event.currentTarget === null) throw new Error();
           const formData = new FormData(event.currentTarget);
           const { title, body } = Object.fromEntries(formData.entries());
-          onSubmit(title, body);
+          onSubmit(title as string, body as string);
           onClose();
         }}>
         <Modal.Header closeButton>

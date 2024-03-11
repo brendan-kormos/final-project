@@ -1,8 +1,5 @@
 import './Projects.css';
 import {
-  type Auth,
-  signIn,
-  signUp,
   createProject,
   Project as ProjectType,
   getProjects,
@@ -14,7 +11,6 @@ import Project from '../Components/Project';
 import * as Icons from 'react-bootstrap-icons';
 import { useContext, useEffect, useState } from 'react';
 
-type ProjectList = ProjectType[];
 // type BoardList =
 export default function Projects() {
   const { user } = useContext(AppContext);
@@ -22,23 +18,17 @@ export default function Projects() {
   const bigWindow = windowSize > 500;
   const [isLoading, setIsLoading] = useState(false);
   const [isRequesting, setRequesting] = useState(false);
-  const [projects, setProjects] = useState<ProjectList>();
-  const [boards, setBoards] = useState();
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [boards, setBoards] = useState<Board[]>([]);
 
   useEffect(() => {
     // get projects
     async function get() {
       if (!user) return;
-      console.log('user is logged in, get projects');
-      const result = await getProjects(user.userId);
-
-      if (result.length === 0) return;
-      console.log('result', result);
-      setProjects(result.projects);
-      setBoards(result.boards);
-      // result.map((project) => {});
-      // const newBoardList = {};
       try {
+        const result = await getProjects();
+        setProjects(result.projects);
+        setBoards(result.boards);
         setIsLoading(true);
       } catch (err) {
         console.error(err);
@@ -66,7 +56,6 @@ export default function Projects() {
       }
     } catch (err) {
       console.error(err);
-      alert('err', err);
     } finally {
       setRequesting(false);
     }
@@ -84,7 +73,7 @@ export default function Projects() {
 
       <ul className="container pt-2 list-unstyled">
         {projects.length > 0 &&
-          projects.map((project: ProjectType, index) => {
+          projects.map((project: ProjectType) => {
             return (
               <li key={project.projectId}>
                 <Project

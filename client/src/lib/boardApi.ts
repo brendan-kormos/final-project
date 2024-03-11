@@ -1,4 +1,4 @@
-import {BoardObjectData} from "./canvas"
+import { BoardObjectData } from './canvas';
 
 export type CreateProject = {
   title: string;
@@ -17,9 +17,16 @@ export type Project = {
   projectId: number;
 } & CreateProject;
 
+export type ForkedDomElement = {
+  htmlElement: HTMLElement;
+  boardObjectId: number;
+} & createjs.DOMElement;
+export type ForkedStage = createjs.Stage & { scale:number; children: ForkedDomElement[]; canvas: ForkedCanvas };
+export type ForkedCanvas = HTMLCanvasElement & { width: number; height: number };
 
-
-export async function getBoardObjects(boardId:number): Promise<Project[]> {
+export async function getBoardObjects(
+  boardId: number
+): Promise<BoardObjectData[]> {
   const req = {
     method: 'GET',
     headers: {
@@ -27,14 +34,15 @@ export async function getBoardObjects(boardId:number): Promise<Project[]> {
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
   };
-  const res = await fetch('/api/board/'+boardId, req);
+  const res = await fetch('/api/board/' + boardId, req);
   const json = await res.json();
   if (!res.ok) throw new Error(`fetch Error ${res.status}. ${json.error}`);
   return json;
 }
 
-
-export async function createGenericBoardObject(boardId: number): Promise<Project[]> {
+export async function createGenericBoardObject(
+  boardId: number
+): Promise<BoardObjectData> {
   const req = {
     method: 'POST',
     headers: {
@@ -50,7 +58,7 @@ export async function createGenericBoardObject(boardId: number): Promise<Project
 
 export async function requestCreateButton(
   boardId: number,
-  data:BoardObjectData
+  data: BoardObjectData
 ): Promise<BoardObjectData[]> {
   const req = {
     method: 'POST',
@@ -58,7 +66,7 @@ export async function requestCreateButton(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   };
   const res = await fetch('/api/board/create/' + boardId, req);
   const json = await res.json();
@@ -68,7 +76,7 @@ export async function requestCreateButton(
 
 export async function requestEditObject(
   data: BoardObjectData
-): Promise<BoardObjectData[]> {
+): Promise<BoardObjectData> {
   const req = {
     method: 'PUT',
     headers: {

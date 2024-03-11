@@ -175,7 +175,7 @@ app.get('/api/projects/:projectId', authMiddleware, async (req, res, next) => {
       from "projects"
       where "ownerId" = $1 and "projectId" = $2
     `;
-    const result = await db.query<Project>(sql, [user.userId, projectId]);
+    const result = await db.query<Project>(sql, [req.user.userId, projectId]); // changed user.UserId to req.userId
     const val = result.rows[0];
     res.status(201).json(val);
   } catch (err) {
@@ -223,7 +223,7 @@ app.post('/api/board/:projectId', authMiddleware, async (req, res, next) => {
     const { projectId } = req.params;
     const { title, body } = req.body;
     console.log('create a board');
-    if (!projectId || !Number(projectId) || isNaN(projectId)) {
+    if (!projectId || !Number(projectId) || isNaN(Number(projectId))) {
       throw new ClientError(400, 'no projectId was provided');
     }
     if (!title) {
@@ -257,7 +257,7 @@ app.put(
     try {
       console.log('gor req for edit project');
       const { projectId, title } = req.params;
-      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+      if (!projectId || !Number(projectId) || isNaN(Number(projectId))) {
         throw new ClientError(400, 'no projectId was provided');
       }
       if (!title) {
@@ -300,7 +300,7 @@ app.delete(
   async (req, res, next) => {
     try {
       const { projectId } = req.params;
-      if (!projectId || !Number(projectId) || isNaN(projectId)) {
+      if (!projectId || !Number(projectId) || isNaN(Number(projectId))) {
         throw new ClientError(400, 'no projectId was provided');
       }
 
@@ -338,7 +338,7 @@ app.delete('/api/board/:boardId', authMiddleware, async (req, res, next) => {
   try {
     console.log('made it to server');
     const { boardId } = req.params;
-    if (!boardId || !Number(boardId) || isNaN(boardId)) {
+    if (!boardId || !Number(boardId) || isNaN(Number(boardId))) {
       throw new ClientError(400, 'no boardId was provided');
     }
 
@@ -372,7 +372,7 @@ app.put(
       const { boardId, title } = req.params;
       const { body } = req.body;
       console.log('made it to board edit', boardId);
-      if (!boardId || !Number(boardId) || isNaN(boardId)) {
+      if (!boardId || !Number(boardId) || isNaN(Number(boardId))) {
         throw new ClientError(400, 'no projectId was provided');
       }
       if (!title) {

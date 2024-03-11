@@ -1,6 +1,4 @@
-import { Button } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
-import ModalTitleBodyEdit from './CustomModal';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { deleteBoard, editBoard } from '../lib';
@@ -18,7 +16,6 @@ export default function Board({
   title,
   description,
   boardId,
-  projectId,
 }: Props) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -44,13 +41,13 @@ export default function Board({
         // onNewProject(result);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   }
 
-  function handleEditBoardClicked(event) {
+  function handleEditBoardClicked() {
     setIsModalOpen(true)
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
@@ -61,12 +58,12 @@ export default function Board({
 
 
 
-  async function handleDeleteBoardClicked(event) {
+  async function handleDeleteBoardClicked() {
     try {
       if (isLoading) return;
       setIsLoading(true);
 
-      const result = await deleteBoard(boardId);
+      await deleteBoard(boardId);
       navigate(0);
       // onNewProject(result);
     } catch (err) {

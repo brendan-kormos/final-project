@@ -2,51 +2,34 @@ import './BoardCanvas.css';
 
 import * as createjs from '@thegraid/createjs-module';
 
-import {
-  type Auth,
-  signIn,
-  signUp,
-  createProject,
-  Project as ProjectType,
-  getProjects,
-  Board,
-} from '../lib';
-
 import { AppContext } from '../Components/AppContext';
 import NavBar from '../Components/NavBar';
 import {
   MouseEvent,
-  forwardRef,
-  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
 } from 'react';
 import {
-  createGenericBoardObject,
   getBoardObjects,
   requestCreateButton,
   requestEditObject,
+  ForkedStage,
+  ForkedDomElement,
 } from '../lib/boardApi';
-import { useRouter } from 'next/router';
-import { useLocation, useParams } from 'react-router-dom';
-import { findDOMNode, render } from 'react-dom';
-import {
-  Dropdown,
-  Navbar,
-  DropdownButton,
-  DropdownItem,
-} from 'react-bootstrap';
+
+import { Dropdown } from 'react-bootstrap';
 import {
   BoardObjectData,
   getDOMElementByHTMLElement,
-  getDOMElementIndexByBoardObjectId,
   renderInstance,
 } from '../lib/canvas';
 import CustomModal from '../Components/CustomModal';
+import { useParams } from 'react-router-dom';
+// type Stage = createjs.Stage & { htmlElement: HTMLElement };
+// type DOMElement = createjs.DOMElement & { boardObjectId: number };
 
-type ProjectList = ProjectType[];
 // type BoardList =
 
 let dragStageX = 0;
@@ -76,25 +59,24 @@ function gridLocked(num: number) {
   return gridLockIncrement * Math.round(num / gridLockIncrement);
 }
 
-const essentialsObj = {
+const essentialsObj: any = {
   // $canvas,
   // $container,
   // $html,
   // stage,
 };
 
-const contextMenuItems = [];
-
 export default function BoardCanvas() {
   const { user } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(false);
   const [loadSuccess, setLoadSuccess] = useState(false); // request to server success
   // const []
-  const { boardId } = useParams();
+  const params = useParams();
+  const boardId = Number(params.boardId);
   const navBarRef = useRef(null);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const [boardObjects, setBoardObjects] = useState([]);
+  const [boardObjects, setBoardObjects] = useState<BoardObjectData[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [titlePrompt, setTitlePrompt] = useState('');
@@ -102,18 +84,19 @@ export default function BoardCanvas() {
   const [bodyPrompt, setBodyPrompt] = useState('');
   const [bodyContent, setBodyContent] = useState('');
   const [header, setHeader] = useState('');
-  const [stage, setStage] = useState<createjs.Stage | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [stage, setStage] = useState<ForkedStage | null>(null);
+  // const [editing, setEditing] = useState(false);
 
-  const [selectedObject, setSelectedObject] = useState<createjs.Stage | null>(
-    null
-  );
+  const [selectedObject, setSelectedObject] = useState<{
+    boardObject: BoardObjectData;
+    domElement: ForkedDomElement;
+  } | null>(null);
   // const [editing, setEditing] = useState<{
   //   domElement: createjs.DOMElement;
   //   boardObject;
   // }>();
   const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextMenuItems, setContextMenuItems] = useState([]);
+  const [contextMenuItems, setContextMenuItems] = useState<string[]>([]);
   const [contextMenuPos, setContextMenuPos] = useState<{
     x: number;
     y: number;
@@ -123,40 +106,63 @@ export default function BoardCanvas() {
   // const [dropdownItems, setDropdownItems] = useState();
 
   async function handleModalFormSubmit(title, content) {
-    const { boardObject, domElement } = editing;
-    const { boardId, boardObjectId } = boardObject;
-    const newBoardObject: BoardObjectData = { boardId, boardObjectId };
+    if (
+      !selectedObject ||
+      !selectedObject.boardObject ||
+      !selectedObject.domElement
+    ) {
+      return;
+    }
+    const { boardObject, domElement } = selectedObject || {};
+    if (!boardObject || !domElement) return;
+    const { boardId, boardObjectId } = boardObject as {
+      boardId: number;
+      boardObjectId: number;
+    };
+    const newBoardObject: {
+      boardId: number;
+      boardObjectId: number;
+      title?: string;
+      content?: string;
+    } = {
+      boardId,
+      boardObjectId,
+    };
     //if nothing changed return
     if (title === boardObject.title && content === boardObject.content) return;
     if (title != boardObject.title) newBoardObject.title = title;
     if (content != boardObject.content) newBoardObject.content = content;
     try {
-      const result = await requestEditObject(newBoardObject);
+      if (isLoading) return;
+      setIsLoading(true);
+      const result = await requestEditObject(newBoardObject as BoardObjectData);
       // const stageIndex = getDOMElementIndexByBoardObjectId(boardObjectId);
+      // type BoardObjects = Array<BoardObjectData>;
 
-      setBoardObjects((objs) => {
+      setBoardObjects((objs: any) => {
         return objs.map((obj) => {
           if (obj.boardObjectId === boardObject.boardObjectId) {
             return result;
           } else return obj;
         });
       });
-      (domElement as createjs.DOMElement).htmlElement.firstChild.textContent =
-        result.title;
+      if (
+        domElement.htmlElement.firstChild !== null &&
+        typeof domElement.htmlElement.firstChild.textContent === 'string'
+      ) {
+        const firstChild: any = domElement.htmlElement.firstChild;
+        //could not figure out how to get textContent type error to stop yelling
+        firstChild.textContent = result.title;
+      }
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    // if (editing) setTimeout(() => (containerRef.current.oncontextmenu = null), 0);
-    //  containerRef.current.oncontextmenu = function () {
-    //    return false;
-    //  };
-  }, []);
-
-  useEffect(() => {
-    // get projects
+    // get boardObjects
     async function get() {
       if (!user) return;
       try {
@@ -179,83 +185,92 @@ export default function BoardCanvas() {
     get();
   }, [user]);
 
-  useEffect(() => {
-    console.log('boardObjects', boardObjects);
-  }, [boardObjects]);
-
   function cursorPos(event): [x: number, y: number] {
-    const $container: Element = containerRef.current;
+    const $container = containerRef.current as HTMLElement | null;
     if (!$container) throw new Error('container does not exist');
     const { x, y } = $container.getBoundingClientRect(); //event.target is canvas
     return [event.clientX - x, event.clientY - y]; // x and y screen position relative to canvas.
   }
 
-  function onButtonClick(event) {
-    const button: createjs.DOMElement = mouseDownOnButton;
-    const $button = button.htmlElement;
-    const boardObject = boardObjects.find((value) => {
+  function onButtonClick() {
+    const button: ForkedDomElement = mouseDownOnButton;
+    // const $button = button.htmlElement;
+    const boardObject = boardObjects.find((value: BoardObjectData) => {
       return value.boardObjectId === button.boardObjectId;
     });
+    if (!boardObject) return;
     setIsModalOpen(true);
-    setSelectedObject({ domElement: button, boardObject });
-    setEditing(true);
+    setSelectedObject({ domElement: button as ForkedDomElement, boardObject });
+    // setEditing(true);
     setHeader('Manage Idea');
     setTitleContent(boardObject.title);
     setTitlePrompt('Edit Title');
     setBodyPrompt('Edit Body');
     setBodyContent(boardObject.content);
   }
-  function onButtonRightClick(event) {
+  function onButtonRightClick() {
     console.log('button right click');
   }
 
-  function onButtonDrag(event) {
+  function onButtonDrag() {
     const button: createjs.DOMElement = mouseDownOnButton;
-    const $button = button.htmlElement;
 
     button.x = gridLocked(localCursorX - buttonMouseOffsetX);
     button.y = gridLocked(localCursorY - buttonMouseOffsetY);
   }
-  async function onButtonUndrag(event) {
+  async function onButtonUndrag() {
     const data = {
       boardId,
       boardObjectId: mouseDownOnButton.boardObjectId,
       x: mouseDownOnButton.x,
       y: mouseDownOnButton.y,
     };
+
     try {
-      const result = await requestEditObject(data);
+      if (isLoading) return;
+      setIsLoading(true);
+      await requestEditObject(data as BoardObjectData);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function handleCreateButton() {
-    const data = {
-      x: gridLocked(localCursorX),
-      y: gridLocked(localCursorY),
-      type: 'button',
-      title: 'New idea',
-      content: '',
-    };
     try {
-      const result = await requestCreateButton(boardId, data);
+      if (isLoading) return;
+      setIsLoading(true);
+      const data = {
+        x: gridLocked(localCursorX),
+        y: gridLocked(localCursorY),
+        type: 'button',
+        title: 'New idea',
+        content: '',
+      };
+      const result = await requestCreateButton(
+        boardId,
+        data as BoardObjectData
+      );
       setBoardObjects((obj) => [...obj, ...result]);
       for (let i = 0; i < result.length; i++) {
         renderInstance(essentialsObj, result[i]);
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
-  function onCanvasClicked(event) {}
+  function onCanvasClicked() {}
 
-  function onCanvasRightClicked(event) {
+  function onCanvasRightClicked() {
     // contextMenuItems.splice(0, contextMenuItems.length, ...['test1', 'test222']);
     console.log('canvas right click');
   }
 
   function onMouseClick(event) {
+    if (!stage) return;
     const $target = event.target;
     const [cursorX, cursorY] = cursorPos(event);
     const { x, y } = stage.globalToLocal(cursorX, cursorY); // real position regardless of scale
@@ -264,11 +279,11 @@ export default function BoardCanvas() {
     const mouseButton1Click = leftMouseDown && !rightMouseDown;
     const mouseButton2Click = rightMouseDown && !leftMouseDown;
     if (mouseButton1Click) {
-      if ($target.id === 'board-canvas') onCanvasClicked(event);
-      if (mouseDownOnButton) onButtonClick(event);
+      if ($target.id === 'board-canvas') onCanvasClicked();
+      if (mouseDownOnButton) onButtonClick();
     } else if (mouseButton2Click) {
-      if ($target.id === 'board-canvas') onCanvasRightClicked(event);
-      if (mouseDownOnButton) onButtonRightClick(event);
+      if ($target.id === 'board-canvas') onCanvasRightClicked();
+      if (mouseDownOnButton) onButtonRightClick();
     }
 
     prevLocalCursorX = localCursorX;
@@ -277,7 +292,8 @@ export default function BoardCanvas() {
     prevCursorY = cursorY;
   }
   function onMouseDown(event: MouseEvent) {
-    const $target: HTMLElement = event.target;
+    if (!stage) return;
+    const $target = event.target as HTMLElement;
     // detect left clicks
     if (event.button == 0) {
       leftMouseDown = true;
@@ -318,6 +334,7 @@ export default function BoardCanvas() {
   }
 
   function onMouseWheel(event) {
+    if (!stage) return;
     const mouseX = stage.mouseX;
     const mouseY = stage.mouseY;
 
@@ -370,7 +387,7 @@ export default function BoardCanvas() {
       mouseDownOnButton &&
       (cursorX != mouseDownStartX || cursorY != mouseDownStartY)
     ) {
-      onButtonUndrag(event);
+      onButtonUndrag();
     }
 
     leftMouseDown = false;
@@ -384,7 +401,6 @@ export default function BoardCanvas() {
   let foundNan = false;
   function onMouseMove(event) {
     if (!stage) return;
-    const $target = event.target;
     // get mouse position
     const [cursorX, cursorY] = cursorPos(event);
 
@@ -413,7 +429,7 @@ export default function BoardCanvas() {
         stage.x = scrollStageX + dragStageX;
         stage.y = scrollStageY + dragStageY;
       } else if (mouseDownOnButton) {
-        onButtonDrag(event);
+        onButtonDrag();
       }
     }
 
@@ -435,9 +451,12 @@ export default function BoardCanvas() {
 
   useEffect(() => {
     if (!loadSuccess) return;
-    const stage = new createjs.Stage('board-canvas');
-    essentialsObj.$canvas = canvasRef.current;
-    essentialsObj.$container = containerRef.current;
+    const stage = new createjs.Stage('board-canvas') as ForkedStage;
+    if (canvasRef.current && containerRef.current) {
+      essentialsObj.$canvas = canvasRef.current;
+      essentialsObj.$container = containerRef.current;
+    }
+
     essentialsObj.$html = document.documentElement;
     essentialsObj.stage = stage;
     setStage(stage);
@@ -481,7 +500,7 @@ export default function BoardCanvas() {
         stage.enableMouseOver(-1);
         stage.enableDOMEvents(false);
         stage.removeAllEventListeners();
-        stage.canvas = null;
+        stage.canvas = null as any;
       }
     };
   }, [loadSuccess]);
@@ -502,19 +521,17 @@ export default function BoardCanvas() {
   return (
     <>
       <div
-        onContextMenu={(event) => {
+        onContextMenu={(event: MouseEvent) => {
           event.preventDefault();
-          const $target = event.target;
+          const $target = event.target as HTMLInputElement;
           console.log(event);
           setShowContextMenu(true);
           const [x, y] = cursorPos(event);
           setContextMenuPos({ x, y });
           const $canvas = $target.id === 'board-canvas';
-          const $button = $target?.closest('.canvas-button');
+          const $button = $target.closest('.canvas-button');
           if ($canvas) setContextMenuItems(['Create Idea']);
           else if ($button) setContextMenuItems(['__divider', 'Delete Idea']);
-
-          console.log('onCanvas', onCanvas);
         }}
         onMouseMove={onMouseMove}
         onMouseDown={onMouseDown}
@@ -534,7 +551,7 @@ export default function BoardCanvas() {
       </div>
       <CustomModal
         onClose={() => {
-          setEditing(false);
+          // setEditing(false);
           setSelectedObject(null);
           setIsModalOpen(false);
         }}

@@ -1,9 +1,9 @@
 import './SignIn.css';
 
-import React, { FormEvent, useCallback, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { useEffect } from 'react';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { type Auth, signIn, signUp } from '../lib';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { signUp } from '../lib';
 
 import {
   FloatingLabel,
@@ -11,11 +11,9 @@ import {
   Button,
   Container,
   FormGroup,
-  InputGroup,
 } from 'react-bootstrap';
 
 import NavBar from '../Components/NavBar';
-import { Input } from 'postcss';
 
 function concat(prev: string, concat: string) {
   if (prev.length > 0) prev += `. ${concat}`;
@@ -29,7 +27,6 @@ export default function SignIn() {
   const location = useLocation();
 
   const [errMessage, setErrMessage] = useState('');
-  const [validated, setValidated] = useState(false);
   const [userErrMessage, setUserErrMessage] = useState('');
   const [passErrMessage, setPassErrMessage] = useState('');
   const [password, setPassword] = useState('');
@@ -38,8 +35,16 @@ export default function SignIn() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     async function handleSignUp(username: string, password: string) {
-      await signUp(username, password);
-      navigate('/sign-in');
+      try {
+        if (isLoading) return
+        setIsLoading(true);
+        await signUp(username, password);
+        navigate('/sign-in');
+      } catch (err: any) {
+        console.log(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     if (event.currentTarget === null) throw new Error();
@@ -48,8 +53,8 @@ export default function SignIn() {
     const { username, password } = entries;
 
     try {
-      const val = await handleSignUp(username as string, password as string);
-    } catch (err) {
+      await handleSignUp(username as string, password as string);
+    } catch (err: any) {
       setErrMessage(err.message);
     }
   }
@@ -98,11 +103,6 @@ export default function SignIn() {
     setPassErrMessage(str);
   }
 
-  useEffect(() => {
-    handleUserErrMsg(username);
-    handlePassErrMsg(password);
-  }, [validated]);
-
   return (
     <div className="h-100 d-flex flex-column ">
       <NavBar />
@@ -118,7 +118,7 @@ export default function SignIn() {
 
             <FormGroup className="form-group my-2">
               <FloatingLabel
-                onChange={(event) => {
+                onChange={(event:React.ChangeEvent<HTMLInputElement>) => {
                   setUsername(event.target.value);
                   handleUserErrMsg(event.target.value);
                 }}
@@ -130,8 +130,7 @@ export default function SignIn() {
                   name="username"
                   type="username"
                   placeholder="username"
-                  className={`${
-                    getUserValidity()}`}
+                  className={`${getUserValidity()}`}
                 />
                 <Form.Control.Feedback tooltip type="invalid">
                   {userErrMessage}
@@ -150,8 +149,7 @@ export default function SignIn() {
                   name="password"
                   type="password"
                   placeholder="password"
-                  className={`${
-                    getPassValidity()}`}
+                  className={`${getPassValidity()}`}
                 />
                 <Form.Control.Feedback tooltip type="invalid">
                   {passErrMessage}

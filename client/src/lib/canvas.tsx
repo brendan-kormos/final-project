@@ -1,26 +1,31 @@
 import * as createjs from '@thegraid/createjs-module';
 import { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { ForkedCanvas, ForkedDomElement, ForkedStage } from './boardApi';
+// import { DOMElement } from './boardApi';
 
 export type Essentials = {
   $html: HTMLElement;
   $container: HTMLElement;
-  $canvas: HTMLCanvasElement;
-  stage: createjs.Stage;
+  $canvas: ForkedCanvas;
+  stage: ForkedStage;
 };
 
 export type Types = 'button';
 
+export type BoardObjectInputData = {
+  anchorMiddle?: boolean;
+};
+
 export type BoardObjectData = {
-  boardId?: number;
-  boardObjectId?: number;
+  boardId: number;
+  boardObjectId: number;
   x: number;
   y: number;
   type: Types;
-  title?: string;
-  content?: string;
-  createdAt?: number;
-  anchorMiddle?: boolean;
+  title: string;
+  content: string;
+  createdAt: number;
 };
 {
   /* <div className="card-body ps-5">
@@ -35,24 +40,24 @@ export type BoardObjectData = {
 }
 
 export function getDOMElementByHTMLElement(
-  stage: createjs.Stage,
+  stage: ForkedStage,
   $element: Element
 ) {
-  return stage.children.find((value, index) => {
+  return stage.children.find((value: ForkedDomElement) => {
     return value.htmlElement === $element;
   });
 }
 
 export function getDOMElementIndexByBoardObjectId(
-  stage: createjs.Stage,
+  stage: ForkedStage,
   $element: Element
 ) {
-  return stage.children.findIndex((value, index) => {
+  return stage.children.findIndex((value: ForkedDomElement) => {
     return value.htmlElement === $element;
   });
 }
 
-function Button({ title, content }) {
+function Button({ title }) {
   return (
     <button className="canvas-button card btn btn-light overflow-hidden">
       {/* <div className="card-body "> */}
@@ -74,8 +79,9 @@ function convertReactToHtml(
   return domNode;
 }
 
-export function renderInstance(essentials: Essentials, data: BoardObjectData) {
-  const { $html, $container, $canvas, stage } = essentials;
+export function renderInstance(essentials: Essentials, data: BoardObjectData & BoardObjectInputData) {
+  // const { $html, $container, $canvas, stage } = essentials;
+  const { $container, stage } = essentials;
   let width = 250,
     height = 100;
 
@@ -90,11 +96,11 @@ export function renderInstance(essentials: Essentials, data: BoardObjectData) {
   // $element.style.border = '1px solid black';
   $container.prepend($element);
 
-  const domElement = new createjs.DOMElement($element);
+  const domElement = new createjs.DOMElement($element) as ForkedDomElement;
   stage.addChild(domElement);
   domElement.parent = stage;
+
   domElement.boardObjectId = data.boardObjectId;
   domElement.x = data.anchorMiddle ? data.x - width / 2 : data.x;
   domElement.y = data.anchorMiddle ? data.y - height / 2 : data.y;
-
 }

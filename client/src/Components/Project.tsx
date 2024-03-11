@@ -1,23 +1,20 @@
-import { Navbar } from 'react-bootstrap';
 import Board from './Board';
 import * as Icon from 'react-bootstrap-icons';
 import CustomModal from './CustomModal';
 import { useEffect, useState } from 'react';
-import { createBoard, createProject, deleteProject, editProject } from '../lib';
+import { Board as BoardType, createBoard, deleteProject, editProject } from '../lib';
 import { useNavigate } from 'react-router-dom';
 type Props = {
   title: string;
   ownerId: number;
   projectId: number;
-  boards: [];
+  boards: BoardType[];
   onNewBoard: (board: any) => void;
 };
 export default function Project({
   title,
-  ownerId,
   projectId,
   boards,
-  project,
   onNewBoard,
 }: Props) {
   const [isLoading, setIsLoading] = useState(false);
@@ -57,14 +54,14 @@ export default function Project({
     }
   }
 
-  const targetId = `#modal-menu${projectId}`;
-  const targetIdNoTag = `modal-menu${projectId}`;
+  // const targetId = `#modal-menu${projectId}`;
+  // const targetIdNoTag = `modal-menu${projectId}`;
 
   useEffect(() => {
     console.log('header', header);
   }, [header]);
 
-  function handleNewBoardClicked(event) {
+  function handleNewBoardClicked() {
     console.log('new board clicked', projectId);
     setIsModalOpen(true);
     setHeader('Create a new board');
@@ -74,7 +71,7 @@ export default function Project({
     setShowBody(true);
   }
 
-  function handleEditProjectClicked(event) {
+  function handleEditProjectClicked() {
     setIsModalOpen(true);
     setHeader('Edit Title');
     setTitlePrompt('Set a title');
@@ -83,7 +80,7 @@ export default function Project({
     setShowBody(false);
   }
 
-  async function handleDeleteProjectClicked(event) {
+  async function handleDeleteProjectClicked() {
     try {
       if (isLoading) return;
       setIsLoading(true);
@@ -111,21 +108,27 @@ export default function Project({
           {/* <ul className="list-unstyled"> */}
           {boards &&
             boards
-              .filter((element) => {
+              .filter((element: { projectId: number }) => {
                 return element.projectId === projectId;
               })
-              .map((element) => {
-                return (
-                  // <li key={element.boardId}>
-                  <Board
-                    projectId={projectId}
-                    boardId={element.boardId}
-                    title={element.title}
-                    description={element.description}
-                  />
-                  // </li>
-                );
-              })}
+              .map(
+                (element: {
+                  title: string;
+                  boardId: number;
+                  description: string;
+                }) => {
+                  return (
+                    // <li key={element.boardId}>
+                    <Board
+                      projectId={projectId}
+                      boardId={element.boardId}
+                      title={element.title}
+                      description={element.description}
+                    />
+                    // </li>
+                  );
+                }
+              )}
           {/* </ul> */}
         </div>
         <div
@@ -147,8 +150,8 @@ export default function Project({
             </li>
             <li>
               <button
-                data-bs-toggle="modal"
-                data-bs-target={targetId}
+                // data-bs-toggle="modal"
+                // data-bs-target={targetId}
                 onClick={handleEditProjectClicked}
                 className="dropdown-item btn btn-dark">
                 Edit Project
