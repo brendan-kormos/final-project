@@ -56,7 +56,6 @@ export default function App() {
   return (
     <AppContext.Provider value={contextValue}>
       <Routes>
-        {/* <Route path="/" element={<NavBar />}> */}
         <Route index path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
         <Route path="/projects" element={<Projects />} />
