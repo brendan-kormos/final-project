@@ -1,16 +1,14 @@
-import { useContext, forwardRef } from 'react';
+import { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AppContext } from './AppContext';
 
-export default forwardRef(function NavBar({}, ref) {
+export default function NavBar() {
   const { handleSignOut, user: signedIn } = useContext(AppContext);
   // const signedIn = context.user;
   const { pathname } = useLocation();
   return (
     <>
-      <nav
-        ref={ref as any}
-        className="navbar navbar-expand-md navbar-dark w-100 bg-dark">
+      <nav className="navbar navbar-expand-md navbar-dark w-100 bg-dark">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/sign-up">
             Project Manager
@@ -114,4 +112,4 @@ export default forwardRef(function NavBar({}, ref) {
       </nav>
     </>
   );
-});
+}

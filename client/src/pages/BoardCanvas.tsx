@@ -4,13 +4,7 @@ import * as createjs from '@thegraid/createjs-module';
 
 import { AppContext } from '../Components/AppContext';
 import NavBar from '../Components/NavBar';
-import {
-  MouseEvent,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { MouseEvent, useContext, useEffect, useRef, useState } from 'react';
 import {
   getBoardObjects,
   requestCreateButton,
@@ -73,7 +67,6 @@ export default function BoardCanvas() {
   // const []
   const params = useParams();
   const boardId = Number(params.boardId);
-  const navBarRef = useRef(null);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [boardObjects, setBoardObjects] = useState<BoardObjectData[]>([]);
@@ -590,7 +583,7 @@ export default function BoardCanvas() {
         </Dropdown>
       ) : null}
 
-      <NavBar ref={navBarRef} />
+      <NavBar />
     </>
   );
 }
