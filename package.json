@@ -18,14 +18,12 @@
     "lint:client": "npm run lint --prefix client",
     "lint:server": "npm run lint --prefix server",
     "lint": "npm-run-all --parallel lint:*",
+    "psql": ". server/.env && psql $DATABASE_URL",
+    "tsc:client": "tsc --project client",
+    "tsc:server": "tsc --project server",
+    "tsc": "npm-run-all --continue-on-error tsc:*",
     "prepare": "husky install",
     "deploy": "git push --force origin main:pub"
-  },
-  "dependencies": {
-    "husky": "^8.0.3",
-    "npm-run-all": "^4.1.5",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
   },
   "devDependencies": {
     "@learningfuze/lfz-config": "^1.0.0",
@@ -40,11 +38,15 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.33.1",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
     "lint-staged": "^13.2.1",
     "markuplint": "^3.7.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.8.7",
     "stylelint": "^15.4.0",
     "stylelint-config-recommended": "^11.0.0",
-    "stylelint-config-standard": "^32.0.0"
+    "stylelint-config-standard": "^32.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.3"
   }
 }
